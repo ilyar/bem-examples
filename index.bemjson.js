@@ -4,10 +4,10 @@
     favicon: '/favicon.ico',
     head: [
         { elem: 'meta', attrs: { name: 'description', content: '' }},
-        { elem: 'css', url: '_index.css' }
+        { elem: 'css', url: 'index.css' }
     ],
     scripts: [
-        { elem: 'js', url: '_index.js' }
+        { elem: 'js', url: 'index.js' }
     ],
     content: [
         {
