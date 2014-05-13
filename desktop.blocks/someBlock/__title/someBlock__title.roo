@@ -1,0 +1,4 @@
+.someBlock__title
+{
+    font-weight: bold;
+}
