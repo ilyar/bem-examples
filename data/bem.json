@@ -1,0 +1,19 @@
+{ "block": "someBlock",
+    "content": [
+        { "elem": "title",
+            "content": "I am Block, BEM Block."
+        },
+        { "elem": "body",
+            "content": [
+                { "elem": "question",
+                    "content": "Say Your Name?"
+                },
+                { "block": "input",
+                    "label": "Name:"
+                },
+                { "block": "button",
+                    "text": "say"
+                }
+            ]
+        }]
+}
