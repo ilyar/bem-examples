@@ -1,5 +1,12 @@
 .someBlock
 {
-    font-family: arial, sans-serif;
+    font-family: Arial, sans-serif;
     font-size: 14px;
+    color: #404040;
+
+    border: 2px;
+    background-color: #F7F7F7;
+    box-shadow: rgba(0, 0, 0, 0.298039) 0px 2px 2px 0px;
+    padding: 40px;
+    width: 200px;
 }

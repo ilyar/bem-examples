@@ -1,4 +1,4 @@
 .someBlock__body
 {
-    padding: 2px;
+    padding-top: 20px;
 }
