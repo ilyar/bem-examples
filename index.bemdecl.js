@@ -15,8 +15,5 @@ exports.blocks = [
     },
     {
         "name": "loader"
-    },
-    {
-        "name": "someBlock"
     }
 ];

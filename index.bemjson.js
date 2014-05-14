@@ -1,21 +1,15 @@
 ({
     block: 'page',
-    title: 'Title of the page',
+    title: 'Examples BEM blocks',
     favicon: '/favicon.ico',
     head: [
-        { elem: 'meta', attrs: { name: 'description', content: '' }},
-        { elem: 'css', url: 'index.css' }
+        { elem: 'meta', attrs: { name: 'description', content: 'Examples BEM blocks' }},
+        { elem: 'css', url: '_index.css' }
     ],
     scripts: [
-        { elem: 'js', url: 'index.js' }
+        { elem: 'js', url: '_index.js' }
     ],
     content: [
-        {
-            block: 'loader',
-            js: {id: 'bem'}
-        },
-        {
-            block: 'someBlock'
-        }
+        { block: 'loader', js: {id: 'bem'} }
     ]
 })

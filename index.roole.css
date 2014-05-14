@@ -8,28 +8,14 @@
 }
  .spin_theme_simple.spin_progress {
   display: inline-block;
-  -webkit-animation: spin_theme_simple 2s infinite linear;
   animation: spin_theme_simple 2s infinite linear;
  }
 
-@-webkit-keyframes spin_theme_simple {
- from {
-  -webkit-transform: rotate(0);
-  transform: rotate(0);
- }
- to {
-  -webkit-transform: rotate(360deg);
-  transform: rotate(360deg);
- }
-}
-
 @keyframes spin_theme_simple {
  from {
-  -webkit-transform: rotate(0);
   transform: rotate(0);
  }
  to {
-  -webkit-transform: rotate(360deg);
   transform: rotate(360deg);
  }
 }
@@ -54,9 +40,6 @@
  display: inline-block;
  margin: 0;
  padding: 0;
- -webkit-user-select: none;
- -moz-user-select: none;
- -ms-user-select: none;
  user-select: none;
  border: 1px solid rgba(0, 0, 0, 0.2);
  border-radius: 3px;

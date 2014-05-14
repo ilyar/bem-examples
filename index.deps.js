@@ -501,10 +501,6 @@ exports.depsByTechs = {
             },
             {
                 "tech": "js",
-                "block": "dom"
-            },
-            {
-                "tech": "js",
                 "block": "input"
             },
             {
@@ -513,7 +509,7 @@ exports.depsByTechs = {
             },
             {
                 "tech": "js",
-                "block": "jquery"
+                "block": "dom"
             },
             {
                 "tech": "js",
@@ -545,12 +541,16 @@ exports.depsByTechs = {
             },
             {
                 "tech": "js",
-                "block": "jquery",
-                "elem": "config"
+                "block": "jquery"
             },
             {
                 "tech": "js",
                 "block": "events"
+            },
+            {
+                "tech": "js",
+                "block": "jquery",
+                "elem": "config"
             },
             {
                 "tech": "js",
@@ -1351,11 +1351,11 @@ exports.depsByTechs = {
             },
             {
                 "tech": "spec.js",
-                "block": "input"
+                "block": "button"
             },
             {
                 "tech": "spec.js",
-                "block": "button"
+                "block": "input"
             },
             {
                 "tech": "spec.js",
@@ -1372,14 +1372,6 @@ exports.depsByTechs = {
             {
                 "tech": "spec.js",
                 "block": "i-bem"
-            },
-            {
-                "tech": "spec.js",
-                "block": "tick"
-            },
-            {
-                "tech": "spec.js",
-                "block": "idle"
             },
             {
                 "tech": "spec.js",
@@ -1407,6 +1399,14 @@ exports.depsByTechs = {
                 "elem": "event",
                 "mod": "type",
                 "val": "pointerpressrelease"
+            },
+            {
+                "tech": "spec.js",
+                "block": "tick"
+            },
+            {
+                "tech": "spec.js",
+                "block": "idle"
             },
             {
                 "tech": "spec.js",
@@ -1970,10 +1970,6 @@ exports.depsByTechs = {
             },
             {
                 "tech": "bemhtml",
-                "block": "input"
-            },
-            {
-                "tech": "bemhtml",
                 "block": "jquery"
             },
             {
@@ -1989,11 +1985,7 @@ exports.depsByTechs = {
             },
             {
                 "tech": "bemhtml",
-                "block": "tick"
-            },
-            {
-                "tech": "bemhtml",
-                "block": "idle"
+                "block": "input"
             },
             {
                 "tech": "bemhtml",
@@ -2003,6 +1995,14 @@ exports.depsByTechs = {
                 "tech": "bemhtml",
                 "block": "jquery",
                 "elem": "config"
+            },
+            {
+                "tech": "bemhtml",
+                "block": "tick"
+            },
+            {
+                "tech": "bemhtml",
+                "block": "idle"
             },
             {
                 "tech": "bemhtml",
