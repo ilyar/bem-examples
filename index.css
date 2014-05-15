@@ -42,12 +42,44 @@
 }
 
 /* blocks/loader/loader.roo end */
+/* ../../desktop.blocks/someBlock/__title/someBlock__title.roo begin */
+.someBlock__title {
+ text-align: center;
+ font-weight: bold;
+}
+
+/* ../../desktop.blocks/someBlock/__title/someBlock__title.roo end */
+/* ../../desktop.blocks/someBlock/__body/someBlock__body.roo begin */
+.someBlock__body {
+ padding-top: 20px;
+}
+
+/* ../../desktop.blocks/someBlock/__body/someBlock__body.roo end */
 /* ../../desktop.blocks/someBlock/__question/someBlock__question.roo begin */
 .someBlock__question {
  font-style: italic;
 }
 
 /* ../../desktop.blocks/someBlock/__question/someBlock__question.roo end */
+/* ../../desktop.blocks/someBlock/someBlock.roo begin */
+.someBlock {
+ font-family: Arial, sans-serif;
+ font-size: 14px;
+ color: #404040;
+ border: 2px;
+ background-color: #F7F7F7;
+ box-shadow: rgba(0, 0, 0, 0.29804) 0px 2px 2px 0px;
+ padding: 40px;
+ width: 200px;
+}
+
+/* ../../desktop.blocks/someBlock/someBlock.roo end */
+/* blocks/someBlock/someBlock.roo begin */
+.someBlock {
+ margin: 100px auto;
+}
+
+/* blocks/someBlock/someBlock.roo end */
 /* ../../libs/bem-components/design/common.blocks/button/_theme/button_theme_normal.roo begin */
 .button_theme_normal {
  font-family: Arial, Helvetica, sans-serif;
@@ -190,22 +222,3 @@
   .button_theme_normal.button_togglable_radio.button_hovered ~ .button_togglable_radio ~ .button_togglable_radio {
    border-left-width: 1px;
   }
-
-/* ../../libs/bem-components/design/common.blocks/button/_theme/button_theme_normal.roo end */
-/* ../../desktop.blocks/someBlock/someBlock.roo begin */
-.someBlock {
- font-family: Arial, sans-serif;
- font-size: 14px;
- color: #404040;
- border: 2px;
- background-color: #F7F7F7;
- box-shadow: rgba(0, 0, 0, 0.29804) 0px 2px 2px 0px;
- padding: 40px;
- width: 200px;
-}
-
-/* ../../desktop.blocks/someBlock/someBlock.roo end */
-/* blocks/someBlock/someBlock.roo begin */
-.someBlock {
- margin: 100px auto;
-}
