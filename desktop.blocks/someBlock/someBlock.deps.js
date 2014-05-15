@@ -1,10 +1,10 @@
 ({
     mustDeps: [
         {
-            elem: 'title',
-            elem: 'body',
-            elem: 'question'
-        },
+            elems: ['title', 'body', 'question']
+        }
+    ],
+    shouldDeps: [
         {
             block: 'input'
         },
@@ -12,7 +12,5 @@
             block: 'button',
             mods: { theme: 'normal', size: 's'}
         }
-    ],
-    shouldDeps: [
     ]
 })
