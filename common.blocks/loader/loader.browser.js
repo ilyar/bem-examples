@@ -14,8 +14,28 @@ modules.define('loader',
     provide(BEMDOM.decl(this.name, /** @lends loader.prototype методы экземпляра*/ {
 
         BEMTREE: {
+
             apply: function(json) {
-                var bemjson = json;
+                console.log(json);
+                var bemjson = { "block": "someBlock",
+                    "content": [
+                        { "elem": "title",
+                            "content": json.title
+                        },
+                        { "elem": "body",
+                            "content": [
+                                { "elem": "question",
+                                    "content": json.question
+                                },
+                                { "block": "input",
+                                    "label": "Name:"
+                                },
+                                { "block": "button",
+                                    "text": "say"
+                                }
+                            ]
+                        }]
+                };
                 return BEMHTML.apply(bemjson);
             }
 
