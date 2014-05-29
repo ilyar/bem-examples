@@ -1,15 +1,19 @@
 {
-  "name": "bem-project-stub",
-  "version": "1.0.0",
-  "description": "BEM project stub",
-  "bugs": "https://github.com/bem/project-stub/issues",
+  "name": "bem-examples",
+  "version": "0.0.1",
+  "description": "BEM examples",
+  "author": "Ilya Rogov <ilyar.software@gmail.com> (http://ilyar.github.io)",
+  "bugs": "https://github.com/ilyar/bem-examples/issues",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ilyar/bem-examples.git"
+  },
   "ignore": [
     ".bem/cache",
     "node_modules",
     "libs"
   ],
   "dependencies": {
-    "bem-core": "v2.2.1",
-    "bem-components": "git://github.com/bem/bem-components.git#62242d38e6cb5123054399c5b60a001941f98b65"
+    "bem-components": "v2"
   }
 }

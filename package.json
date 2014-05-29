@@ -1,10 +1,12 @@
 {
-  "author": "",
-  "name": "bem-project-stub",
-  "version": "1.0.0",
+  "name": "bem-examples",
+  "version": "0.0.1",
+  "description": "BEM examples",
+  "author": "Ilya Rogov <ilyar.software@gmail.com> (http://ilyar.github.io)",
+  "bugs": "https://github.com/ilyar/bem-examples/issues",
   "repository": {
     "type": "git",
-    "url": "git://github.com/bem/project-stub.git"
+    "url": "https://github.com/ilyar/bem-examples.git"
   },
   "engines": {
     "node": ">=0.10"
@@ -14,14 +16,13 @@
     "roole": "~0.9.0"
   },
   "devDependencies": {
-    "bem": "0.8.1",
+    "bem": "~0.8.1",
     "bower": "~1.2.8",
     "bower-npm-install": "~0.5.4",
-    "bem-tools-autoprefixer": "0.0.3"
+    "bem-tools-autoprefixer": "~0.0.3"
   },
   "scripts": {
     "postinstall": "bower-npm-install --non-interactive",
     "deps": "bower-npm-install --non-interactive"
-  },
-  "private": true
+  }
 }
