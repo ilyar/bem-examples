@@ -10,6 +10,6 @@
         { elem: 'js', url: '_index.js' }
     ],
     content: [
-        { block: 'loader', js: {id: 'bem'} }
+        { block: 'loader', js: {id: 'someData'} }
     ]
 })
