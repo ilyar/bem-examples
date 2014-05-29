@@ -16,26 +16,8 @@ modules.define('loader',
         BEMTREE: {
 
             apply: function(json) {
-                console.log(json);
-                var bemjson = { "block": "someBlock",
-                    "content": [
-                        { "elem": "title",
-                            "content": json.title
-                        },
-                        { "elem": "body",
-                            "content": [
-                                { "elem": "question",
-                                    "content": json.question
-                                },
-                                { "block": "input",
-                                    "label": "Name:"
-                                },
-                                { "block": "button",
-                                    "text": "say"
-                                }
-                            ]
-                        }]
-                };
+                var bemjson = { "block": "someBlock" };
+                bemjson.data = json;
                 return BEMHTML.apply(bemjson);
             }
 
