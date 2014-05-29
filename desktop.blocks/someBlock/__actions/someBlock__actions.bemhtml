@@ -1,0 +1,10 @@
+block('someBlock').elem('actions')(
+    content()(
+        {
+            block: 'button',
+            mods : { theme : 'normal', size : 'l' },
+            text: 'say'
+        }
+
+    )
+)

@@ -1,6 +1,6 @@
 .someBlock
 {
-    font-family: Arial, sans-serif;
+    font-family: Tahoma, Arial, Helvetica, sans-serif;
     font-size: 14px;
     color: #404040;
 

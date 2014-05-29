@@ -1,3 +1,16 @@
 block('someBlock')(
+    def()(function() {
+        var data = this.ctx.data || {};
+        this.ctx.content = [
+            { elem: 'title', content: data.title || 'Empty title' },
+            { elem: 'body',
+                content: [
+                    { elem: 'question', content: data.question || 'Empty question' },
+                    { elem: 'answer' },
+                    { elem: 'actions' }
+                ]
+            }];
+        return applyNext();
+    }),
     js()(true)
 )
