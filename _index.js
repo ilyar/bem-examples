@@ -1128,7 +1128,7 @@ var BEM = inherit(events.Emitter, /** @lends BEM.prototype */ {
     },
 
     _buildModEventName : function(modEvent) {
-        var res = MOD_DELIM + modEvent.modName + MOD_DELIM + modEvent.modVal;
+        var res = MOD_DELIM + modEvent.modName + MOD_DELIM + (modEvent.modVal === false? '' : modEvent.modVal);
         modEvent.elem && (res = ELEM_DELIM + modEvent.elem + res);
         return res;
     },
@@ -2044,33 +2044,25 @@ var undef,
         '(?:' + MOD_DELIM + '(' + NAME_PATTERN + '))?$'),
 
     buildModPostfix = INTERNAL.buildModPostfix,
-    buildClass = INTERNAL.buildClass;
+    buildClass = INTERNAL.buildClass,
+
+    reverse = Array.prototype.reverse;
 
 /**
  * Initializes blocks on a DOM element
  * @param {jQuery} domElem DOM element
  * @param {String} uniqInitId ID of the "initialization wave"
  */
-function init(domElem, uniqInitId) {
+function initBlocks(domElem, uniqInitId) {
     var domNode = domElem[0],
         params = getParams(domNode),
-        blockName, blockParams;
+        blockName;
 
-    for(blockName in params) {
-        if(params.hasOwnProperty(blockName)) {
-            blockParams = params[blockName];
-            processParams(blockParams, domNode, blockName, uniqInitId);
-            var block = uniqIdToBlock[blockParams.uniqId];
-            if(block) {
-                if(block.domElem.index(domNode) < 0) {
-                    block.domElem = block.domElem.add(domElem);
-                    objects.extend(block.params, blockParams);
-                }
-            } else {
-                initBlock(blockName, domElem, blockParams);
-            }
-        }
-    }
+    for(blockName in params)
+        initBlock(
+            blockName,
+            domElem,
+            processParams(params[blockName], blockName, uniqInitId));
 }
 
 /**
@@ -2078,22 +2070,24 @@ function init(domElem, uniqInitId) {
  * @param {String} blockName Block name
  * @param {jQuery} domElem DOM element
  * @param {Object} [params] Initialization parameters
- * @param {Boolean} [forceLive] Force live initialization
+ * @param {Boolean} [forceLive=false] Force live initialization
  * @param {Function} [callback] Handler to call after complete initialization
  */
 function initBlock(blockName, domElem, params, forceLive, callback) {
-    if(typeof params === 'boolean') {
-        callback = forceLive;
-        forceLive = params;
-        params = undef;
-    }
-
     var domNode = domElem[0];
-    params = processParams(params || getParams(domNode)[blockName], domNode, blockName);
 
-    var uniqId = params.uniqId;
-    if(uniqIdToBlock[uniqId]) {
-        return uniqIdToBlock[uniqId]._init();
+    params || (params = processParams(getBlockParams(domNode, blockName), blockName));
+
+    var uniqId = params.uniqId,
+        block = uniqIdToBlock[uniqId];
+
+    if(block) {
+        if(block.domElem.index(domNode) < 0) {
+            block.domElem = block.domElem.add(domElem);
+            objects.extend(block.params, params);
+        }
+
+        return block;
     }
 
     uniqIdToDomElems[uniqId] = uniqIdToDomElems[uniqId]?
@@ -2109,7 +2103,7 @@ function initBlock(blockName, domElem, params, forceLive, callback) {
     if(!(blockClass._liveInitable = !!blockClass._processLive()) || forceLive || params.live === false) {
         forceLive && domElem.addClass(BEM_CLASS); // add css class for preventing memory leaks in further destructing
 
-        var block = new blockClass(uniqIdToDomElems[uniqId], params, !!forceLive);
+        block = uniqIdToBlock[uniqId] = new blockClass(uniqIdToDomElems[uniqId], params, !!forceLive);
         delete uniqIdToDomElems[uniqId];
         callback && callback.apply(block, Array.prototype.slice.call(arguments, 4));
         return block;
@@ -2119,18 +2113,14 @@ function initBlock(blockName, domElem, params, forceLive, callback) {
 /**
  * Processes and adds necessary block parameters
  * @param {Object} params Initialization parameters
- * @param {HTMLElement} domNode DOM node
  * @param {String} blockName Block name
  * @param {String} [uniqInitId] ID of the "initialization wave"
  */
-function processParams(params, domNode, blockName, uniqInitId) {
-    (params || (params = {})).uniqId ||
-        (params.uniqId = (params.id? blockName + '-id-' + params.id : identify()) + (uniqInitId || identify()));
-
-    var domUniqId = identify(domNode),
-        domParams = domElemToParams[domUniqId] || (domElemToParams[domUniqId] = {});
-
-    domParams[blockName] || (domParams[blockName] = params);
+function processParams(params, blockName, uniqInitId) {
+    params.uniqId ||
+        (params.uniqId = (params.id?
+            blockName + '-id-' + params.id :
+            identify()) + (uniqInitId || identify()));
 
     return params;
 }
@@ -2154,10 +2144,22 @@ function findDomElem(ctx, selector, excludeSelf) {
  * @param {HTMLElement} domNode DOM node
  * @returns {Object}
  */
-function getParams(domNode) {
+function getParams(domNode, blockName) {
     var uniqId = identify(domNode);
     return domElemToParams[uniqId] ||
-       (domElemToParams[uniqId] = extractParams(domNode));
+        (domElemToParams[uniqId] = extractParams(domNode));
+}
+
+/**
+ * Returns parameters of a block extracted from DOM node
+ * @param {HTMLElement} domNode DOM node
+ * @param {String} blockName
+ * @returns {Object}
+ */
+
+function getBlockParams(domNode, blockName) {
+    var params = getParams(domNode);
+    return params[blockName] || (params[blockName] = {});
 }
 
 /**
@@ -2177,7 +2179,7 @@ function extractParams(domNode) {
  */
 function removeDomNodeFromBlock(block, domNode) {
     block.domElem.length === 1?
-        block._destruct(true) :
+        block._destruct() :
         block.domElem = block.domElem.not(domNode);
 }
 
@@ -2217,12 +2219,11 @@ var DOM = BEM.decl('i-bem__dom',/** @lends BEMDOM.prototype */{
          */
         this._elemCache = {};
 
-        uniqIdToBlock[
-            /**
-             * @member {String} Unique block ID
-             * @private
-             */
-            this._uniqId = params.uniqId || identify(this)] = this;
+        /**
+         * @member {String} Unique block ID
+         * @private
+         */
+        this._uniqId = params.uniqId;
 
         /**
          * @member {Boolean} Flag for whether it's necessary to unbind from the document and window when destroying the block
@@ -2314,14 +2315,14 @@ var DOM = BEM.decl('i-bem__dom',/** @lends BEMDOM.prototype */{
         select && (domElems = domElems.add(ctxElem[select](selector)));
 
         if(onlyFirst) {
-            return domElems[0]? initBlock(blockName, domElems.eq(0), true) : null;
+            return domElems[0]? initBlock(blockName, domElems.eq(0), undef, true) : null;
         }
 
         var res = [],
             uniqIds = {};
 
         domElems.each(function(i, domElem) {
-            var block = initBlock(blockName, $(domElem), true);
+            var block = initBlock(blockName, $(domElem), undef, true);
             if(!uniqIds[block._uniqId]) {
                 uniqIds[block._uniqId] = true;
                 res.push(block);
@@ -2878,7 +2879,7 @@ var DOM = BEM.decl('i-bem__dom',/** @lends BEMDOM.prototype */{
 
         var uniqInitId = identify();
         findDomElem(ctx, BEM_SELECTOR).each(function() {
-            init($(this), uniqInitId);
+            initBlocks($(this), uniqInitId);
         });
 
         this._runInitFns();
@@ -2892,7 +2893,7 @@ var DOM = BEM.decl('i-bem__dom',/** @lends BEMDOM.prototype */{
      * @param {Boolean} [excludeSelf=false] Exclude the main domElem
      */
     destruct : function(ctx, excludeSelf) {
-        findDomElem(ctx, BEM_SELECTOR, excludeSelf).each(function(i, domNode) {
+        reverse.call(findDomElem(ctx, BEM_SELECTOR, excludeSelf)).each(function(i, domNode) {
             var params = getParams(domNode);
             objects.each(params, function(blockParams) {
                 if(blockParams.uniqId) {
@@ -3038,7 +3039,7 @@ var DOM = BEM.decl('i-bem__dom',/** @lends BEMDOM.prototype */{
         if(storage) {
             var node = e.target, classNames = [];
             for(var className in storage) {
-                storage.hasOwnProperty(className) && classNames.push(className);
+                classNames.push(className);
             }
             do {
                 var nodeClassName = ' ' + node.className + ' ', i = 0;
@@ -3065,6 +3066,7 @@ var DOM = BEM.decl('i-bem__dom',/** @lends BEMDOM.prototype */{
             var args = [
                     _this._name,
                     $(this).closest(_this.buildSelector()),
+                    undef,
                     true
                 ],
                 block = initBlock.apply(null, invokeOnInit? args.concat([callback, e]) : args);
@@ -3469,26 +3471,8 @@ modules.define('loader',
         BEMTREE: {
 
             apply: function(json) {
-                console.log(json);
-                var bemjson = { "block": "someBlock",
-                    "content": [
-                        { "elem": "title",
-                            "content": json.title
-                        },
-                        { "elem": "body",
-                            "content": [
-                                { "elem": "question",
-                                    "content": json.question
-                                },
-                                { "block": "input",
-                                    "label": "Name:"
-                                },
-                                { "block": "button",
-                                    "text": "say"
-                                }
-                            ]
-                        }]
-                };
+                var bemjson = { "block": "someBlock" };
+                bemjson.data = json;
                 return BEMHTML.apply(bemjson);
             }
 
@@ -3685,6 +3669,10 @@ provide(BEMDOM.decl(this.name, /** @lends base-control.prototype */{
                     this.setMod('focused') :
                     // if block already has focused mod, we need to focus control
                     this.hasMod('focused') && this._focus();
+
+                this._tabIndex = this.elem('control').attr('tabindex');
+                if(this.hasMod('disabled') && this._tabIndex !== 'undefined')
+                    this.elem('control').removeAttr('tabindex');
             }
         },
 
@@ -3705,6 +3693,13 @@ provide(BEMDOM.decl(this.name, /** @lends base-control.prototype */{
 
             'true' : function() {
                 this.delMod('focused');
+                typeof this._tabIndex !== 'undefined' &&
+                    this.elem('control').removeAttr('tabindex');
+            },
+
+            '' : function() {
+                typeof this._tabIndex !== 'undefined' &&
+                    this.elem('control').attr('tabindex', this._tabIndex);
             }
         }
     },
@@ -5622,10 +5617,10 @@ provide(BEMDOM.decl({ block : this.name, baseBlock : BaseControl }, /** @lends b
 
         'focused' : {
             'true' : function() {
+                this.__base.apply(this, arguments); // should be called before binds
                 this
                     .bindToWin('unload', this._onUnload) // TODO: WTF???
-                    .bindTo('control', 'keydown', this._onKeyDown)
-                    .__base.apply(this, arguments);
+                    .bindTo('control', 'keydown', this._onKeyDown);
             },
 
             '' : function() {
@@ -5827,6 +5822,19 @@ provide(/** @exports */{
 
 /* ../../libs/bem-core/common.blocks/keyboard/__codes/keyboard__codes.js end */
 ;
+/* ../../desktop.blocks/someBlock/someBlock.browser.js begin */
+/* global modules:false */
+
+modules.define('someBlock'
+    ['i-bem__dom'], function(provide, BEMDOM) {
+
+provide();
+
+});
+
+
+/* ../../desktop.blocks/someBlock/someBlock.browser.js end */
+;
 /* ../../libs/bem-core/common.blocks/loader/_type/loader_type_js.js begin */
 /**
  * @module loader_type_js
@@ -5903,7 +5911,7 @@ provide(/** @exports */{
     /**
      * URL for loading jQuery if it does not exist
      */
-    url : '//yastatic.net/jquery/2.1.0/jquery.min.js'
+    url : '//yastatic.net/jquery/2.1.1/jquery.min.js'
 });
 
 });
@@ -5926,7 +5934,7 @@ provide(
         objects.extend(
             base,
             {
-                url : '//yastatic.net/jquery/1.11.0/jquery.min.js'
+                url : '//yastatic.net/jquery/1.11.1/jquery.min.js'
             }) :
         base);
 
@@ -6017,7 +6025,7 @@ $(function() {
 ;
 (function(g) {
   var __bem_xjst = (function(exports) {
-     var __$ref={};function apply(ctx){try{return applyc(ctx||this,__$ref)}catch(e){(ctx||this).xjstContext=e;throw e}}exports.apply=apply;function applyc(__$ctx,__$ref){var __$t=__$ctx._mode;if(__$t==="tag"){var __$t=__$ctx.block;if(__$t==="button"){if(__$ctx.elem==="text"){__$ctx.__$a=0;return"span"}if(!__$ctx.elem){__$ctx.__$a=0;return __$ctx.ctx.tag||"button"}}else if(__$t==="ua"){if(!__$ctx.elem){__$ctx.__$a=0;return"script"}}else if(__$t==="input"){var __$t=__$ctx.elem;if(__$t==="control"){__$ctx.__$a=0;return"input"}else if(__$t==="box"){__$ctx.__$a=0;return"span"}if(!__$ctx.elem){__$ctx.__$a=0;return"span"}}else if(__$t==="spin"){if(!__$ctx.elem){__$ctx.__$a=0;return"span"}}__$ctx.__$a=0;return undefined}else if(__$t==="content"){var __$t=__$ctx.block;if(__$t==="button"){var __$t=!__$ctx.elem;if(__$t){if(typeof __$ctx.ctx.content!=="undefined"){__$ctx.__$a=0;return __$ctx.ctx.content}__$ctx.__$a=0;var __$r=__$b10(__$ctx,__$ref);if(__$r!==__$ref)return __$r}}else if(__$t==="ua"){if(!__$ctx.elem){__$ctx.__$a=0;return["(function(e,c){",'e[c]=e[c].replace(/(ua_js_)no/g,"$1yes");','})(document.documentElement,"className");']}}else if(__$t==="input"){var __$t=!__$ctx.elem;if(__$t){if(typeof __$ctx.ctx.content!=="undefined"){__$ctx.__$a=0;return __$ctx.ctx.content}__$ctx.__$a=0;var __$r=__$b13(__$ctx,__$ref);if(__$r!==__$ref)return __$r}}else if(__$t==="loader"){if(!__$ctx.elem){__$ctx.__$a=0;return{block:"spin",mods:{theme:"simple",progress:true}}}}__$ctx.__$a=0;return __$ctx.ctx.content}else if(__$t==="attrs"){var __$t=__$ctx.block;if(__$t==="button"){var __$t=!__$ctx.elem;if(__$t){if(!__$ctx.mods.type&&__$ctx.__$a!==1){__$ctx.__$a=0;var __$r=__$b16(__$ctx,__$ref);if(__$r!==__$ref)return __$r}__$ctx.__$a=0;var __$r=__$b17(__$ctx,__$ref);if(__$r!==__$ref)return __$r}}else if(__$t==="input"){if(__$ctx.elem==="control"){__$ctx.__$a=0;var __$r=__$b18(__$ctx,__$ref);if(__$r!==__$ref)return __$r}}__$ctx.__$a=0;return undefined}else if(__$t==="mix"){if(__$ctx.block==="button"&&!__$ctx.elem){__$ctx.__$a=0;return[{elem:"control"}]}__$ctx.__$a=0;return undefined}else if(__$t==="js"){var __$t=__$ctx.block;if(__$t==="button"){if(!__$ctx.elem){__$ctx.__$a=0;return true}}else if(__$t==="input"){if(!__$ctx.elem){__$ctx.__$a=0;return true}}else if(__$t==="someBlock"){if(!__$ctx.elem){__$ctx.__$a=0;return true}}else if(__$t==="loader"){if(!__$ctx.elem){__$ctx.__$a=0;return true}}__$ctx.__$a=0;return undefined}else if(__$t==="default"){var __$t=__$ctx.block;if(__$t==="button"){if(!__$ctx.elem&&__$ctx.__$a!==2){__$ctx.__$a=0;var __$r=__$b27(__$ctx,__$ref);if(__$r!==__$ref)return __$r}}else if(__$t==="input"){if(__$ctx.elem==="control"&&!__$ctx._input__control&&__$ctx.__$a!==3){__$ctx.__$a=0;var __$r=__$b28(__$ctx,__$ref);if(__$r!==__$ref)return __$r}if(!__$ctx.elem&&__$ctx.__$a!==4){__$ctx.__$a=0;var __$r=__$b29(__$ctx,__$ref);if(__$r!==__$ref)return __$r}}__$ctx.__$a=0;var __$r=__$b30(__$ctx,__$ref);if(__$r!==__$ref)return __$r}else if(__$t==="bem"){if(__$ctx.block==="ua"&&!__$ctx.elem){__$ctx.__$a=0;return false}__$ctx.__$a=0;return undefined}else if(__$t==="cls"){__$ctx.__$a=0;return undefined}else if(__$t===""){if(__$ctx.ctx&&__$ctx.ctx._vow&&__$ctx.__$a!==5){__$ctx.__$a=0;var __$r=__$b34(__$ctx,__$ref);if(__$r!==__$ref)return __$r}if(__$ctx.isSimple(__$ctx.ctx)){__$ctx.__$a=0;var __$r=__$b35(__$ctx,__$ref);if(__$r!==__$ref)return __$r}if(!__$ctx.ctx){__$ctx.__$a=0;var __$r=__$b36(__$ctx,__$ref);if(__$r!==__$ref)return __$r}if(__$ctx.isArray(__$ctx.ctx)){__$ctx.__$a=0;var __$r=__$b37(__$ctx,__$ref);if(__$r!==__$ref)return __$r}__$ctx.__$a=0;var __$r=__$b38(__$ctx,__$ref);if(__$r!==__$ref)return __$r}__$ctx.__$a=0}[function(exports,context){var undef,BEM_={},toString=Object.prototype.toString,slice=Array.prototype.slice,isArray=Array.isArray||function(obj){return toString.call(obj)==="[object Array]"},SHORT_TAGS={area:1,base:1,br:1,col:1,command:1,embed:1,hr:1,img:1,input:1,keygen:1,link:1,meta:1,param:1,source:1,wbr:1};!function(BEM,undefined){var MOD_DELIM="_",ELEM_DELIM="__",NAME_PATTERN="[a-zA-Z0-9-]+";function buildModPostfix(modName,modVal){var res=MOD_DELIM+modName;if(modVal!==true)res+=MOD_DELIM+modVal;return res}function buildBlockClass(name,modName,modVal){var res=name;if(modVal)res+=buildModPostfix(modName,modVal);return res}function buildElemClass(block,name,modName,modVal){var res=buildBlockClass(block)+ELEM_DELIM+name;if(modVal)res+=buildModPostfix(modName,modVal);return res}BEM.INTERNAL={NAME_PATTERN:NAME_PATTERN,MOD_DELIM:MOD_DELIM,ELEM_DELIM:ELEM_DELIM,buildModPostfix:buildModPostfix,buildClass:function(block,elem,modName,modVal){var typeOfModName=typeof modName;if(typeOfModName==="string"||typeOfModName==="boolean"){var typeOfModVal=typeof modVal;if(typeOfModVal!=="string"&&typeOfModVal!=="boolean"){modVal=modName;modName=elem;elem=undef}}else if(typeOfModName!=="undefined"){modName=undef}else if(elem&&typeof elem!=="string"){elem=undef}if(!(elem||modName)){return block}return elem?buildElemClass(block,elem,modName,modVal):buildBlockClass(block,modName,modVal)},buildModsClasses:function(block,elem,mods){var res="";if(mods){var modName;for(modName in mods){if(!mods.hasOwnProperty(modName))continue;var modVal=mods[modName];if(!modVal&&modVal!==0)continue;typeof modVal!=="boolean"&&(modVal+="");res+=" "+(elem?buildElemClass(block,elem,modName,modVal):buildBlockClass(block,modName,modVal))}}return res},buildClasses:function(block,elem,mods){var res="";res+=elem?buildElemClass(block,elem):buildBlockClass(block);res+=this.buildModsClasses(block,elem,mods);return res}}}(BEM_);var ts={'"':"&quot;","&":"&amp;","<":"&lt;",">":"&gt;"},f=function(t){return ts[t]||t};var buildEscape=function(r){r=new RegExp(r,"g");return function(s){return(""+s).replace(r,f)}};context.BEMContext=BEMContext;function BEMContext(context,apply_){this.ctx=typeof context==="undefined"?"":context;this.apply=apply_;this._str="";var _this=this;this._buf={push:function(){var chunks=slice.call(arguments).join("");_this._str+=chunks},join:function(){return this._str}};this._=this;this._start=true;this._mode="";this._listLength=0;this._notNewList=false;this.position=0;this.block=undef;this.elem=undef;this.mods=undef;this.elemMods=undef}BEMContext.prototype.isArray=isArray;BEMContext.prototype.isSimple=function isSimple(obj){if(!obj||obj===true)return true;var t=typeof obj;return t==="string"||t==="number"};BEMContext.prototype.isShortTag=function isShortTag(t){return SHORT_TAGS.hasOwnProperty(t)};BEMContext.prototype.extend=function extend(o1,o2){if(!o1||!o2)return o1||o2;var res={},n;for(n in o1)o1.hasOwnProperty(n)&&(res[n]=o1[n]);for(n in o2)o2.hasOwnProperty(n)&&(res[n]=o2[n]);return res};var cnt=0,id=+new Date,expando="__"+id,get=function(){return"uniq"+id+ ++cnt};BEMContext.prototype.identify=function(obj,onlyGet){if(!obj)return get();if(onlyGet||obj[expando]){return obj[expando]}else{return obj[expando]=get()}};BEMContext.prototype.xmlEscape=buildEscape("[&<>]");BEMContext.prototype.attrEscape=buildEscape('["&<>]');BEMContext.prototype.BEM=BEM_;BEMContext.prototype.isFirst=function isFirst(){return this.position===1};BEMContext.prototype.isLast=function isLast(){return this.position===this._listLength};BEMContext.prototype.generateId=function generateId(){return this.identify(this.ctx)};var oldApply=exports.apply;exports.apply=BEMContext.apply=function BEMContext_apply(context){var ctx=new BEMContext(context||this,oldApply);ctx.apply();return ctx._str};BEMContext.prototype.reapply=BEMContext.apply}].forEach(function(fn){fn(exports,this)},{recordExtensions:function(ctx){ctx.__$a=0;ctx._button=undefined;ctx._mode=undefined;ctx.ctx=undefined;ctx._input__control=undefined;ctx._input=undefined;ctx._str=undefined;ctx.block=undefined;ctx.elem=undefined;ctx._notNewList=undefined;ctx.position=undefined;ctx._listLength=undefined;ctx._currBlock=undefined;ctx.mods=undefined;ctx.elemMods=undefined}});function __$b10(__$ctx,__$ref){__$ctx.__$a=0;var ctx__$0=__$ctx.ctx,content__$1=[__$ctx.ctx.icon];ctx__$0.text&&content__$1.push({elem:"text",content:ctx__$0.text});return content__$1}function __$b13(__$ctx,__$ref){__$ctx.__$a=0;var ctx__$18=__$ctx.ctx,content__$19=[{elem:"control"}];ctx__$18.label&&content__$19.unshift({elem:"label",content:ctx__$18.label});return content__$19}function __$b16(__$ctx,__$ref){__$ctx.__$a=0;var ctx__$2=__$ctx.ctx,attrs__$3={};ctx__$2.tag||(attrs__$3.type=ctx__$2.type||"button");ctx__$2.name&&(attrs__$3.name=ctx__$2.name);ctx__$2.val&&(attrs__$3.value=ctx__$2.val);__$ctx.mods.disabled&&(attrs__$3.disabled="disabled");return __$ctx._.extend(function(){var __$r__$4;__$ctx.__$a=1;__$r__$4=applyc(__$ctx,__$ref);return __$r__$4}(),attrs__$3)}function __$b17(__$ctx,__$ref){__$ctx.__$a=0;var ctx__$5=__$ctx.ctx,attrs__$6={role:"button"};ctx__$5.tabIndex&&(attrs__$6.tabindex=ctx__$5.tabIndex);return attrs__$6}function __$b18(__$ctx,__$ref){__$ctx.__$a=0;var input__$16=__$ctx._input,attrs__$17={id:input__$16.id,name:input__$16.name,value:input__$16.val,maxlength:input__$16.maxLength,tabindex:input__$16.tabIndex,placeholder:input__$16.placeholder};input__$16.autocomplete===false&&(attrs__$17.autocomplete="off");__$ctx.mods.disabled&&(attrs__$17.disabled="disabled");return attrs__$17}function __$b27(__$ctx,__$ref){__$ctx.__$a=0;var mods__$7=__$ctx.mods;var __$r__$8;var __$l0__$9=__$ctx._button;__$ctx._button=__$ctx.ctx;var __$r__$10;__$ctx.__$a=2;__$r__$10=applyc(__$ctx,__$ref);__$r__$8=__$r__$10;__$ctx._button=__$l0__$9;return}function __$b28(__$ctx,__$ref){__$ctx.__$a=0;var __$r__$11;var __$l0__$12=__$ctx._mode;__$ctx._mode="";var __$l1__$13=__$ctx.ctx;__$ctx.ctx={elem:"box",content:__$ctx.ctx};var __$l2__$14=__$ctx._input__control;__$ctx._input__control=true;var __$r__$15;__$ctx.__$a=3;__$r__$15=applyc(__$ctx,__$ref);__$r__$11=__$r__$15;__$ctx._mode=__$l0__$12;__$ctx.ctx=__$l1__$13;__$ctx._input__control=__$l2__$14;return}function __$b29(__$ctx,__$ref){__$ctx.__$a=0;var ctx__$20=__$ctx.ctx;ctx__$20.id=ctx__$20.id||__$ctx.generateId();var __$r__$21;var __$l0__$22=__$ctx._input;__$ctx._input=ctx__$20;var __$r__$23;__$ctx.__$a=4;__$r__$23=applyc(__$ctx,__$ref);__$r__$21=__$r__$23;__$ctx._input=__$l0__$22;return}function __$b30(__$ctx,__$ref){__$ctx.__$a=0;var _this__$24=__$ctx,BEM_INTERNAL__$25=_this__$24.BEM.INTERNAL,ctx__$26=__$ctx.ctx,isBEM__$27,tag__$28,res__$29;var __$r__$30;var __$l0__$31=__$ctx._str;__$ctx._str="";var vBlock__$32=__$ctx.block;var __$r__$33;var __$l1__$34=__$ctx._mode;__$ctx._mode="tag";__$r__$33=applyc(__$ctx,__$ref);__$ctx._mode=__$l1__$34;tag__$28=__$r__$33;typeof tag__$28!=="undefined"||(tag__$28=ctx__$26.tag);typeof tag__$28!=="undefined"||(tag__$28="div");if(tag__$28){var jsParams__$35,js__$36;if(vBlock__$32&&ctx__$26.js!==false){var __$r__$37;var __$l2__$38=__$ctx._mode;__$ctx._mode="js";__$r__$37=applyc(__$ctx,__$ref);__$ctx._mode=__$l2__$38;js__$36=__$r__$37;js__$36=js__$36?__$ctx.extend(ctx__$26.js,js__$36===true?{}:js__$36):ctx__$26.js===true?{}:ctx__$26.js;js__$36&&((jsParams__$35={})[BEM_INTERNAL__$25.buildClass(vBlock__$32,ctx__$26.elem)]=js__$36)}__$ctx._str+="<"+tag__$28;var __$r__$39;var __$l3__$40=__$ctx._mode;__$ctx._mode="bem";__$r__$39=applyc(__$ctx,__$ref);__$ctx._mode=__$l3__$40;isBEM__$27=__$r__$39;typeof isBEM__$27!=="undefined"||(isBEM__$27=typeof ctx__$26.bem!=="undefined"?ctx__$26.bem:ctx__$26.block||ctx__$26.elem);var __$r__$42;var __$l4__$43=__$ctx._mode;__$ctx._mode="cls";__$r__$42=applyc(__$ctx,__$ref);__$ctx._mode=__$l4__$43;var cls__$41=__$r__$42;cls__$41||(cls__$41=ctx__$26.cls);var addJSInitClass__$44=ctx__$26.block&&jsParams__$35;if(isBEM__$27||cls__$41){__$ctx._str+=' class="';if(isBEM__$27){__$ctx._str+=BEM_INTERNAL__$25.buildClasses(vBlock__$32,ctx__$26.elem,ctx__$26.elemMods||ctx__$26.mods);var __$r__$46;var __$l5__$47=__$ctx._mode;__$ctx._mode="mix";__$r__$46=applyc(__$ctx,__$ref);__$ctx._mode=__$l5__$47;var mix__$45=__$r__$46;ctx__$26.mix&&(mix__$45=mix__$45?mix__$45.concat(ctx__$26.mix):ctx__$26.mix);if(mix__$45){var visited__$48={},visitedKey__$49=function(block,elem){return(block||"")+"__"+(elem||"")};visited__$48[visitedKey__$49(vBlock__$32,__$ctx.elem)]=true;__$ctx.isArray(mix__$45)||(mix__$45=[mix__$45]);for(var i__$50=0;i__$50<mix__$45.length;i__$50++){var mixItem__$51=mix__$45[i__$50],hasItem__$52=mixItem__$51.block||mixItem__$51.elem,mixBlock__$53=mixItem__$51.block||mixItem__$51._block||_this__$24.block,mixElem__$54=mixItem__$51.elem||mixItem__$51._elem||_this__$24.elem;hasItem__$52&&(__$ctx._str+=" ");__$ctx._str+=BEM_INTERNAL__$25[hasItem__$52?"buildClasses":"buildModsClasses"](mixBlock__$53,mixItem__$51.elem||mixItem__$51._elem||(mixItem__$51.block?undefined:_this__$24.elem),mixItem__$51.elemMods||mixItem__$51.mods);if(mixItem__$51.js){(jsParams__$35||(jsParams__$35={}))[BEM_INTERNAL__$25.buildClass(mixBlock__$53,mixItem__$51.elem)]=mixItem__$51.js===true?{}:mixItem__$51.js;addJSInitClass__$44||(addJSInitClass__$44=mixBlock__$53&&!mixItem__$51.elem)}if(hasItem__$52&&!visited__$48[visitedKey__$49(mixBlock__$53,mixElem__$54)]){visited__$48[visitedKey__$49(mixBlock__$53,mixElem__$54)]=true;var __$r__$56;var __$l6__$57=__$ctx._mode;__$ctx._mode="mix";var __$l7__$58=__$ctx.block;__$ctx.block=mixBlock__$53;var __$l8__$59=__$ctx.elem;__$ctx.elem=mixElem__$54;__$r__$56=applyc(__$ctx,__$ref);__$ctx._mode=__$l6__$57;__$ctx.block=__$l7__$58;__$ctx.elem=__$l8__$59;var nestedMix__$55=__$r__$56;if(nestedMix__$55){for(var j__$60=0;j__$60<nestedMix__$55.length;j__$60++){var nestedItem__$61=nestedMix__$55[j__$60];if(!nestedItem__$61.block&&!nestedItem__$61.elem||!visited__$48[visitedKey__$49(nestedItem__$61.block,nestedItem__$61.elem)]){nestedItem__$61._block=mixBlock__$53;nestedItem__$61._elem=mixElem__$54;mix__$45.splice(i__$50+1,0,nestedItem__$61)}}}}}}}cls__$41&&(__$ctx._str+=isBEM__$27?" "+cls__$41:cls__$41);__$ctx._str+=addJSInitClass__$44?' i-bem"':'"'}if(isBEM__$27&&jsParams__$35){__$ctx._str+=' data-bem="'+__$ctx.attrEscape(JSON.stringify(jsParams__$35))+'"'}var __$r__$63;var __$l9__$64=__$ctx._mode;__$ctx._mode="attrs";__$r__$63=applyc(__$ctx,__$ref);__$ctx._mode=__$l9__$64;var attrs__$62=__$r__$63;attrs__$62=__$ctx.extend(attrs__$62,ctx__$26.attrs);if(attrs__$62){var name__$65,attr__$66;for(name__$65 in attrs__$62){attr__$66=attrs__$62[name__$65];if(typeof attr__$66==="undefined")continue;__$ctx._str+=" "+name__$65+'="'+__$ctx.attrEscape(__$ctx.isSimple(attr__$66)?attr__$66:__$ctx.reapply(attr__$66))+'"'}}}if(__$ctx.isShortTag(tag__$28)){__$ctx._str+="/>"}else{tag__$28&&(__$ctx._str+=">");var __$r__$68;var __$l10__$69=__$ctx._mode;__$ctx._mode="content";__$r__$68=applyc(__$ctx,__$ref);__$ctx._mode=__$l10__$69;var content__$67=__$r__$68;if(content__$67||content__$67===0){isBEM__$27=vBlock__$32||__$ctx.elem;var __$r__$70;var __$l11__$71=__$ctx._mode;__$ctx._mode="";var __$l12__$72=__$ctx._notNewList;__$ctx._notNewList=false;var __$l13__$73=__$ctx.position;__$ctx.position=isBEM__$27?1:__$ctx.position;var __$l14__$74=__$ctx._listLength;__$ctx._listLength=isBEM__$27?1:__$ctx._listLength;var __$l15__$75=__$ctx.ctx;__$ctx.ctx=content__$67;__$r__$70=applyc(__$ctx,__$ref);__$ctx._mode=__$l11__$71;__$ctx._notNewList=__$l12__$72;__$ctx.position=__$l13__$73;__$ctx._listLength=__$l14__$74;__$ctx.ctx=__$l15__$75}tag__$28&&(__$ctx._str+="</"+tag__$28+">")}res__$29=__$ctx._str;__$r__$30=undefined;__$ctx._str=__$l0__$31;__$ctx._buf.push(res__$29);return}function __$b34(__$ctx,__$ref){__$ctx.__$a=0;var __$r__$76;var __$l0__$77=__$ctx._mode;__$ctx._mode="";var __$l1__$78=__$ctx.ctx;__$ctx.ctx=__$ctx.ctx._value;var __$r__$79;__$ctx.__$a=5;__$r__$79=applyc(__$ctx,__$ref);__$r__$76=__$r__$79;__$ctx._mode=__$l0__$77;__$ctx.ctx=__$l1__$78;return}function __$b35(__$ctx,__$ref){__$ctx.__$a=0;__$ctx._listLength--;var ctx__$80=__$ctx.ctx;if(ctx__$80&&ctx__$80!==true||ctx__$80===0){__$ctx._str+=ctx__$80+""}return}function __$b36(__$ctx,__$ref){__$ctx.__$a=0;__$ctx._listLength--;return}function __$b37(__$ctx,__$ref){__$ctx.__$a=0;var ctx__$81=__$ctx.ctx,len__$82=ctx__$81.length,i__$83=0,prevPos__$84=__$ctx.position,prevNotNewList__$85=__$ctx._notNewList;if(prevNotNewList__$85){__$ctx._listLength+=len__$82-1}else{__$ctx.position=0;__$ctx._listLength=len__$82}__$ctx._notNewList=true;while(i__$83<len__$82)!function(){var __$r__$86;var __$l0__$87=__$ctx.ctx;__$ctx.ctx=ctx__$81[i__$83++];__$r__$86=applyc(__$ctx,__$ref);__$ctx.ctx=__$l0__$87;return __$r__$86}();prevNotNewList__$85||(__$ctx.position=prevPos__$84);return}function __$b38(__$ctx,__$ref){__$ctx.__$a=0;__$ctx.ctx||(__$ctx.ctx={});var vBlock__$88=__$ctx.ctx.block,vElem__$89=__$ctx.ctx.elem,block__$90=__$ctx._currBlock||__$ctx.block;var __$r__$91;var __$l0__$92=__$ctx._mode;__$ctx._mode="default";var __$l1__$93=__$ctx.block;__$ctx.block=vBlock__$88||(vElem__$89?block__$90:undefined);var __$l2__$94=__$ctx._currBlock;__$ctx._currBlock=vBlock__$88||vElem__$89?undefined:block__$90;var __$l3__$95=__$ctx.elem;__$ctx.elem=vElem__$89;var __$l4__$96=__$ctx.mods;__$ctx.mods=vBlock__$88?__$ctx.ctx.mods||(__$ctx.ctx.mods={}):__$ctx.mods;var __$l5__$97=__$ctx.elemMods;__$ctx.elemMods=__$ctx.ctx.elemMods||{};__$ctx.block||__$ctx.elem?__$ctx.position=(__$ctx.position||0)+1:__$ctx._listLength--;applyc(__$ctx,__$ref);__$r__$91=undefined;__$ctx._mode=__$l0__$92;__$ctx.block=__$l1__$93;__$ctx._currBlock=__$l2__$94;__$ctx.elem=__$l3__$95;__$ctx.mods=__$l4__$96;__$ctx.elemMods=__$l5__$97;return};
+     var __$ref={};function apply(ctx){try{return applyc(ctx||this,__$ref)}catch(e){(ctx||this).xjstContext=e;throw e}}exports.apply=apply;function applyc(__$ctx,__$ref){var __$t=__$ctx._mode;if(__$t==="js"){var __$t=__$ctx.block;if(__$t==="button"){var __$t=!__$ctx.elem;if(__$t){if(__$ctx.mods&&__$ctx.mods["focused"]===true&&__$ctx.__$a!==1){__$ctx.__$a=0;var __$r=__$ctx.extend(function(){var __$r__$0;__$ctx.__$a=1;__$r__$0=applyc(__$ctx,__$ref);return __$r__$0}(),{live:false});if(__$r!==__$ref)return __$r}__$ctx.__$a=0;return true}}else if(__$t==="someBlock"){if(!__$ctx.elem){__$ctx.__$a=0;return true}}else if(__$t==="input"){if(!__$ctx.elem){__$ctx.__$a=0;return true}}else if(__$t==="loader"){if(!__$ctx.elem){__$ctx.__$a=0;return true}}__$ctx.__$a=0;return undefined}else if(__$t==="tag"){var __$r=__$g0(__$ctx,__$ref);if(__$r!==__$ref)return __$r}else if(__$t==="content"){var __$r=__$g1(__$ctx,__$ref);if(__$r!==__$ref)return __$r}else if(__$t==="attrs"){var __$t=__$ctx.block;if(__$t==="button"){var __$t=!__$ctx.elem;if(__$t){if(!__$ctx.mods.type&&__$ctx.__$a!==2){__$ctx.__$a=0;var __$r=__$b25(__$ctx,__$ref);if(__$r!==__$ref)return __$r}__$ctx.__$a=0;var __$r=__$b26(__$ctx,__$ref);if(__$r!==__$ref)return __$r}}else if(__$t==="input"){if(__$ctx.elem==="control"){__$ctx.__$a=0;var __$r=__$b27(__$ctx,__$ref);if(__$r!==__$ref)return __$r}}__$ctx.__$a=0;return undefined}else if(__$t==="mix"){if(__$ctx.block==="button"&&!__$ctx.elem){__$ctx.__$a=0;return[{elem:"control"}]}__$ctx.__$a=0;return undefined}else if(__$t==="default"){var __$t=__$ctx.block;if(__$t==="button"){if(!__$ctx.elem&&__$ctx.__$a!==3){__$ctx.__$a=0;var __$r=__$b31(__$ctx,__$ref);if(__$r!==__$ref)return __$r}}else if(__$t==="someBlock"){if(!__$ctx.elem&&__$ctx.__$a!==4){__$ctx.__$a=0;var __$r=__$b32(__$ctx,__$ref);if(__$r!==__$ref)return __$r}}else if(__$t==="input"){if(__$ctx.elem==="control"&&!__$ctx._input__control&&__$ctx.__$a!==5){__$ctx.__$a=0;var __$r=__$b33(__$ctx,__$ref);if(__$r!==__$ref)return __$r}if(!__$ctx.elem&&__$ctx.__$a!==6){__$ctx.__$a=0;var __$r=__$b34(__$ctx,__$ref);if(__$r!==__$ref)return __$r}}__$ctx.__$a=0;var __$r=__$b35(__$ctx,__$ref);if(__$r!==__$ref)return __$r}else if(__$t==="bem"){if(__$ctx.block==="ua"&&!__$ctx.elem){__$ctx.__$a=0;return false}__$ctx.__$a=0;return undefined}else if(__$t==="cls"){__$ctx.__$a=0;return undefined}else if(__$t===""){if(__$ctx.ctx&&__$ctx.ctx._vow&&__$ctx.__$a!==7){__$ctx.__$a=0;var __$r=__$b39(__$ctx,__$ref);if(__$r!==__$ref)return __$r}if(__$ctx.isSimple(__$ctx.ctx)){__$ctx.__$a=0;var __$r=__$b40(__$ctx,__$ref);if(__$r!==__$ref)return __$r}if(!__$ctx.ctx){__$ctx.__$a=0;var __$r=__$b41(__$ctx,__$ref);if(__$r!==__$ref)return __$r}if(__$ctx.isArray(__$ctx.ctx)){__$ctx.__$a=0;var __$r=__$b42(__$ctx,__$ref);if(__$r!==__$ref)return __$r}__$ctx.__$a=0;var __$r=__$b43(__$ctx,__$ref);if(__$r!==__$ref)return __$r}__$ctx.__$a=0}[function(exports,context){var undef,BEM_={},toString=Object.prototype.toString,slice=Array.prototype.slice,isArray=Array.isArray||function(obj){return toString.call(obj)==="[object Array]"},SHORT_TAGS={area:1,base:1,br:1,col:1,command:1,embed:1,hr:1,img:1,input:1,keygen:1,link:1,meta:1,param:1,source:1,wbr:1};!function(BEM,undefined){var MOD_DELIM="_",ELEM_DELIM="__",NAME_PATTERN="[a-zA-Z0-9-]+";function buildModPostfix(modName,modVal){var res=MOD_DELIM+modName;if(modVal!==true)res+=MOD_DELIM+modVal;return res}function buildBlockClass(name,modName,modVal){var res=name;if(modVal)res+=buildModPostfix(modName,modVal);return res}function buildElemClass(block,name,modName,modVal){var res=buildBlockClass(block)+ELEM_DELIM+name;if(modVal)res+=buildModPostfix(modName,modVal);return res}BEM.INTERNAL={NAME_PATTERN:NAME_PATTERN,MOD_DELIM:MOD_DELIM,ELEM_DELIM:ELEM_DELIM,buildModPostfix:buildModPostfix,buildClass:function(block,elem,modName,modVal){var typeOfModName=typeof modName;if(typeOfModName==="string"||typeOfModName==="boolean"){var typeOfModVal=typeof modVal;if(typeOfModVal!=="string"&&typeOfModVal!=="boolean"){modVal=modName;modName=elem;elem=undef}}else if(typeOfModName!=="undefined"){modName=undef}else if(elem&&typeof elem!=="string"){elem=undef}if(!(elem||modName)){return block}return elem?buildElemClass(block,elem,modName,modVal):buildBlockClass(block,modName,modVal)},buildModsClasses:function(block,elem,mods){var res="";if(mods){var modName;for(modName in mods){if(!mods.hasOwnProperty(modName))continue;var modVal=mods[modName];if(!modVal&&modVal!==0)continue;typeof modVal!=="boolean"&&(modVal+="");res+=" "+(elem?buildElemClass(block,elem,modName,modVal):buildBlockClass(block,modName,modVal))}}return res},buildClasses:function(block,elem,mods){var res="";res+=elem?buildElemClass(block,elem):buildBlockClass(block);res+=this.buildModsClasses(block,elem,mods);return res}}}(BEM_);var ts={'"':"&quot;","&":"&amp;","<":"&lt;",">":"&gt;"},f=function(t){return ts[t]||t};var buildEscape=function(r){r=new RegExp(r,"g");return function(s){return(""+s).replace(r,f)}};context.BEMContext=BEMContext;function BEMContext(context,apply_){this.ctx=typeof context==="undefined"?"":context;this.apply=apply_;this._str="";var _this=this;this._buf={push:function(){var chunks=slice.call(arguments).join("");_this._str+=chunks},join:function(){return this._str}};this._=this;this._start=true;this._mode="";this._listLength=0;this._notNewList=false;this.position=0;this.block=undef;this.elem=undef;this.mods=undef;this.elemMods=undef}BEMContext.prototype.isArray=isArray;BEMContext.prototype.isSimple=function isSimple(obj){if(!obj||obj===true)return true;var t=typeof obj;return t==="string"||t==="number"};BEMContext.prototype.isShortTag=function isShortTag(t){return SHORT_TAGS.hasOwnProperty(t)};BEMContext.prototype.extend=function extend(o1,o2){if(!o1||!o2)return o1||o2;var res={},n;for(n in o1)o1.hasOwnProperty(n)&&(res[n]=o1[n]);for(n in o2)o2.hasOwnProperty(n)&&(res[n]=o2[n]);return res};var cnt=0,id=+new Date,expando="__"+id,get=function(){return"uniq"+id+ ++cnt};BEMContext.prototype.identify=function(obj,onlyGet){if(!obj)return get();if(onlyGet||obj[expando]){return obj[expando]}else{return obj[expando]=get()}};BEMContext.prototype.xmlEscape=buildEscape("[&<>]");BEMContext.prototype.attrEscape=buildEscape('["&<>]');BEMContext.prototype.BEM=BEM_;BEMContext.prototype.isFirst=function isFirst(){return this.position===1};BEMContext.prototype.isLast=function isLast(){return this.position===this._listLength};BEMContext.prototype.generateId=function generateId(){return this.identify(this.ctx)};var oldApply=exports.apply;exports.apply=BEMContext.apply=function BEMContext_apply(context){var ctx=new BEMContext(context||this,oldApply);ctx.apply();return ctx._str};BEMContext.prototype.reapply=BEMContext.apply}].forEach(function(fn){fn(exports,this)},{recordExtensions:function(ctx){ctx.__$a=0;ctx._button=undefined;ctx._mode=undefined;ctx.ctx=undefined;ctx._input__control=undefined;ctx._input=undefined;ctx._str=undefined;ctx.block=undefined;ctx.elem=undefined;ctx._notNewList=undefined;ctx.position=undefined;ctx._listLength=undefined;ctx._currBlock=undefined;ctx.mods=undefined;ctx.elemMods=undefined}});function __$b17(__$ctx,__$ref){__$ctx.__$a=0;var ctx__$1=__$ctx.ctx,content__$2=[__$ctx.ctx.icon];ctx__$1.text&&content__$2.push({elem:"text",content:ctx__$1.text});return content__$2}function __$b22(__$ctx,__$ref){__$ctx.__$a=0;var ctx__$21=__$ctx.ctx,content__$22=[{elem:"control"}];ctx__$21.label&&content__$22.unshift({elem:"label",content:ctx__$21.label});return content__$22}function __$b25(__$ctx,__$ref){__$ctx.__$a=0;var ctx__$3=__$ctx.ctx,attrs__$4={};ctx__$3.tag||(attrs__$4.type=ctx__$3.type||"button");ctx__$3.name&&(attrs__$4.name=ctx__$3.name);ctx__$3.val&&(attrs__$4.value=ctx__$3.val);__$ctx.mods.disabled&&(attrs__$4.disabled="disabled");return __$ctx._.extend(function(){var __$r__$5;__$ctx.__$a=2;__$r__$5=applyc(__$ctx,__$ref);return __$r__$5}(),attrs__$4)}function __$b26(__$ctx,__$ref){__$ctx.__$a=0;var ctx__$6=__$ctx.ctx,attrs__$7={role:"button"};ctx__$6.tabIndex&&(attrs__$7.tabindex=ctx__$6.tabIndex);return attrs__$7}function __$b27(__$ctx,__$ref){__$ctx.__$a=0;var input__$19=__$ctx._input,attrs__$20={id:input__$19.id,name:input__$19.name,value:input__$19.val,maxlength:input__$19.maxLength,tabindex:input__$19.tabIndex,placeholder:input__$19.placeholder};input__$19.autocomplete===false&&(attrs__$20.autocomplete="off");__$ctx.mods.disabled&&(attrs__$20.disabled="disabled");return attrs__$20}function __$b31(__$ctx,__$ref){__$ctx.__$a=0;var mods__$8=__$ctx.mods;var __$r__$9;var __$l0__$10=__$ctx._button;__$ctx._button=__$ctx.ctx;var __$r__$11;__$ctx.__$a=3;__$r__$11=applyc(__$ctx,__$ref);__$r__$9=__$r__$11;__$ctx._button=__$l0__$10;return}function __$b32(__$ctx,__$ref){__$ctx.__$a=0;var data__$12=__$ctx.ctx.data||{};__$ctx.ctx.content=[{elem:"title",content:data__$12.title||"Empty title"},{elem:"body",content:[{elem:"question",content:data__$12.question||"Empty question"},{elem:"answer"},{elem:"actions"}]}];var __$r__$13;__$ctx.__$a=4;__$r__$13=applyc(__$ctx,__$ref);return __$r__$13}function __$b33(__$ctx,__$ref){__$ctx.__$a=0;var __$r__$14;var __$l0__$15=__$ctx._mode;__$ctx._mode="";var __$l1__$16=__$ctx.ctx;__$ctx.ctx={elem:"box",content:__$ctx.ctx};var __$l2__$17=__$ctx._input__control;__$ctx._input__control=true;var __$r__$18;__$ctx.__$a=5;__$r__$18=applyc(__$ctx,__$ref);__$r__$14=__$r__$18;__$ctx._mode=__$l0__$15;__$ctx.ctx=__$l1__$16;__$ctx._input__control=__$l2__$17;return}function __$b34(__$ctx,__$ref){__$ctx.__$a=0;var ctx__$23=__$ctx.ctx;ctx__$23.id=ctx__$23.id||__$ctx.generateId();var __$r__$24;var __$l0__$25=__$ctx._input;__$ctx._input=ctx__$23;var __$r__$26;__$ctx.__$a=6;__$r__$26=applyc(__$ctx,__$ref);__$r__$24=__$r__$26;__$ctx._input=__$l0__$25;return}function __$b35(__$ctx,__$ref){__$ctx.__$a=0;var _this__$27=__$ctx,BEM_INTERNAL__$28=_this__$27.BEM.INTERNAL,ctx__$29=__$ctx.ctx,isBEM__$30,tag__$31,res__$32;var __$r__$33;var __$l0__$34=__$ctx._str;__$ctx._str="";var vBlock__$35=__$ctx.block;var __$r__$36;var __$l1__$37=__$ctx._mode;__$ctx._mode="tag";__$r__$36=applyc(__$ctx,__$ref);__$ctx._mode=__$l1__$37;tag__$31=__$r__$36;typeof tag__$31!=="undefined"||(tag__$31=ctx__$29.tag);typeof tag__$31!=="undefined"||(tag__$31="div");if(tag__$31){var jsParams__$38,js__$39;if(vBlock__$35&&ctx__$29.js!==false){var __$r__$40;var __$l2__$41=__$ctx._mode;__$ctx._mode="js";__$r__$40=applyc(__$ctx,__$ref);__$ctx._mode=__$l2__$41;js__$39=__$r__$40;js__$39=js__$39?__$ctx.extend(ctx__$29.js,js__$39===true?{}:js__$39):ctx__$29.js===true?{}:ctx__$29.js;js__$39&&((jsParams__$38={})[BEM_INTERNAL__$28.buildClass(vBlock__$35,ctx__$29.elem)]=js__$39)}__$ctx._str+="<"+tag__$31;var __$r__$42;var __$l3__$43=__$ctx._mode;__$ctx._mode="bem";__$r__$42=applyc(__$ctx,__$ref);__$ctx._mode=__$l3__$43;isBEM__$30=__$r__$42;typeof isBEM__$30!=="undefined"||(isBEM__$30=typeof ctx__$29.bem!=="undefined"?ctx__$29.bem:ctx__$29.block||ctx__$29.elem);var __$r__$45;var __$l4__$46=__$ctx._mode;__$ctx._mode="cls";__$r__$45=applyc(__$ctx,__$ref);__$ctx._mode=__$l4__$46;var cls__$44=__$r__$45;cls__$44||(cls__$44=ctx__$29.cls);var addJSInitClass__$47=ctx__$29.block&&jsParams__$38;if(isBEM__$30||cls__$44){__$ctx._str+=' class="';if(isBEM__$30){__$ctx._str+=BEM_INTERNAL__$28.buildClasses(vBlock__$35,ctx__$29.elem,ctx__$29.elemMods||ctx__$29.mods);var __$r__$49;var __$l5__$50=__$ctx._mode;__$ctx._mode="mix";__$r__$49=applyc(__$ctx,__$ref);__$ctx._mode=__$l5__$50;var mix__$48=__$r__$49;ctx__$29.mix&&(mix__$48=mix__$48?mix__$48.concat(ctx__$29.mix):ctx__$29.mix);if(mix__$48){var visited__$51={},visitedKey__$52=function(block,elem){return(block||"")+"__"+(elem||"")};visited__$51[visitedKey__$52(vBlock__$35,__$ctx.elem)]=true;__$ctx.isArray(mix__$48)||(mix__$48=[mix__$48]);for(var i__$53=0;i__$53<mix__$48.length;i__$53++){var mixItem__$54=mix__$48[i__$53],hasItem__$55=mixItem__$54.block||mixItem__$54.elem,mixBlock__$56=mixItem__$54.block||mixItem__$54._block||_this__$27.block,mixElem__$57=mixItem__$54.elem||mixItem__$54._elem||_this__$27.elem;hasItem__$55&&(__$ctx._str+=" ");__$ctx._str+=BEM_INTERNAL__$28[hasItem__$55?"buildClasses":"buildModsClasses"](mixBlock__$56,mixItem__$54.elem||mixItem__$54._elem||(mixItem__$54.block?undefined:_this__$27.elem),mixItem__$54.elemMods||mixItem__$54.mods);if(mixItem__$54.js){(jsParams__$38||(jsParams__$38={}))[BEM_INTERNAL__$28.buildClass(mixBlock__$56,mixItem__$54.elem)]=mixItem__$54.js===true?{}:mixItem__$54.js;addJSInitClass__$47||(addJSInitClass__$47=mixBlock__$56&&!mixItem__$54.elem)}if(hasItem__$55&&!visited__$51[visitedKey__$52(mixBlock__$56,mixElem__$57)]){visited__$51[visitedKey__$52(mixBlock__$56,mixElem__$57)]=true;var __$r__$59;var __$l6__$60=__$ctx._mode;__$ctx._mode="mix";var __$l7__$61=__$ctx.block;__$ctx.block=mixBlock__$56;var __$l8__$62=__$ctx.elem;__$ctx.elem=mixElem__$57;__$r__$59=applyc(__$ctx,__$ref);__$ctx._mode=__$l6__$60;__$ctx.block=__$l7__$61;__$ctx.elem=__$l8__$62;var nestedMix__$58=__$r__$59;if(nestedMix__$58){for(var j__$63=0;j__$63<nestedMix__$58.length;j__$63++){var nestedItem__$64=nestedMix__$58[j__$63];if(!nestedItem__$64.block&&!nestedItem__$64.elem||!visited__$51[visitedKey__$52(nestedItem__$64.block,nestedItem__$64.elem)]){nestedItem__$64._block=mixBlock__$56;nestedItem__$64._elem=mixElem__$57;mix__$48.splice(i__$53+1,0,nestedItem__$64)}}}}}}}cls__$44&&(__$ctx._str+=isBEM__$30?" "+cls__$44:cls__$44);__$ctx._str+=addJSInitClass__$47?' i-bem"':'"'}if(isBEM__$30&&jsParams__$38){__$ctx._str+=' data-bem="'+__$ctx.attrEscape(JSON.stringify(jsParams__$38))+'"'}var __$r__$66;var __$l9__$67=__$ctx._mode;__$ctx._mode="attrs";__$r__$66=applyc(__$ctx,__$ref);__$ctx._mode=__$l9__$67;var attrs__$65=__$r__$66;attrs__$65=__$ctx.extend(attrs__$65,ctx__$29.attrs);if(attrs__$65){var name__$68,attr__$69;for(name__$68 in attrs__$65){attr__$69=attrs__$65[name__$68];if(typeof attr__$69==="undefined")continue;__$ctx._str+=" "+name__$68+'="'+__$ctx.attrEscape(__$ctx.isSimple(attr__$69)?attr__$69:__$ctx.reapply(attr__$69))+'"'}}}if(__$ctx.isShortTag(tag__$31)){__$ctx._str+="/>"}else{tag__$31&&(__$ctx._str+=">");var __$r__$71;var __$l10__$72=__$ctx._mode;__$ctx._mode="content";__$r__$71=applyc(__$ctx,__$ref);__$ctx._mode=__$l10__$72;var content__$70=__$r__$71;if(content__$70||content__$70===0){isBEM__$30=vBlock__$35||__$ctx.elem;var __$r__$73;var __$l11__$74=__$ctx._mode;__$ctx._mode="";var __$l12__$75=__$ctx._notNewList;__$ctx._notNewList=false;var __$l13__$76=__$ctx.position;__$ctx.position=isBEM__$30?1:__$ctx.position;var __$l14__$77=__$ctx._listLength;__$ctx._listLength=isBEM__$30?1:__$ctx._listLength;var __$l15__$78=__$ctx.ctx;__$ctx.ctx=content__$70;__$r__$73=applyc(__$ctx,__$ref);__$ctx._mode=__$l11__$74;__$ctx._notNewList=__$l12__$75;__$ctx.position=__$l13__$76;__$ctx._listLength=__$l14__$77;__$ctx.ctx=__$l15__$78}tag__$31&&(__$ctx._str+="</"+tag__$31+">")}res__$32=__$ctx._str;__$r__$33=undefined;__$ctx._str=__$l0__$34;__$ctx._buf.push(res__$32);return}function __$b39(__$ctx,__$ref){__$ctx.__$a=0;var __$r__$79;var __$l0__$80=__$ctx._mode;__$ctx._mode="";var __$l1__$81=__$ctx.ctx;__$ctx.ctx=__$ctx.ctx._value;var __$r__$82;__$ctx.__$a=7;__$r__$82=applyc(__$ctx,__$ref);__$r__$79=__$r__$82;__$ctx._mode=__$l0__$80;__$ctx.ctx=__$l1__$81;return}function __$b40(__$ctx,__$ref){__$ctx.__$a=0;__$ctx._listLength--;var ctx__$83=__$ctx.ctx;if(ctx__$83&&ctx__$83!==true||ctx__$83===0){__$ctx._str+=ctx__$83+""}return}function __$b41(__$ctx,__$ref){__$ctx.__$a=0;__$ctx._listLength--;return}function __$b42(__$ctx,__$ref){__$ctx.__$a=0;var ctx__$84=__$ctx.ctx,len__$85=ctx__$84.length,i__$86=0,prevPos__$87=__$ctx.position,prevNotNewList__$88=__$ctx._notNewList;if(prevNotNewList__$88){__$ctx._listLength+=len__$85-1}else{__$ctx.position=0;__$ctx._listLength=len__$85}__$ctx._notNewList=true;while(i__$86<len__$85)!function(){var __$r__$89;var __$l0__$90=__$ctx.ctx;__$ctx.ctx=ctx__$84[i__$86++];__$r__$89=applyc(__$ctx,__$ref);__$ctx.ctx=__$l0__$90;return __$r__$89}();prevNotNewList__$88||(__$ctx.position=prevPos__$87);return}function __$b43(__$ctx,__$ref){__$ctx.__$a=0;__$ctx.ctx||(__$ctx.ctx={});var vBlock__$91=__$ctx.ctx.block,vElem__$92=__$ctx.ctx.elem,block__$93=__$ctx._currBlock||__$ctx.block;var __$r__$94;var __$l0__$95=__$ctx._mode;__$ctx._mode="default";var __$l1__$96=__$ctx.block;__$ctx.block=vBlock__$91||(vElem__$92?block__$93:undefined);var __$l2__$97=__$ctx._currBlock;__$ctx._currBlock=vBlock__$91||vElem__$92?undefined:block__$93;var __$l3__$98=__$ctx.elem;__$ctx.elem=vElem__$92;var __$l4__$99=__$ctx.mods;__$ctx.mods=vBlock__$91?__$ctx.ctx.mods||(__$ctx.ctx.mods={}):__$ctx.mods;var __$l5__$100=__$ctx.elemMods;__$ctx.elemMods=__$ctx.ctx.elemMods||{};__$ctx.block||__$ctx.elem?__$ctx.position=(__$ctx.position||0)+1:__$ctx._listLength--;applyc(__$ctx,__$ref);__$r__$94=undefined;__$ctx._mode=__$l0__$95;__$ctx.block=__$l1__$96;__$ctx._currBlock=__$l2__$97;__$ctx.elem=__$l3__$98;__$ctx.mods=__$l4__$99;__$ctx.elemMods=__$l5__$100;return}function __$g0(__$ctx,__$ref){var __$t=__$ctx.block;if(__$t==="button"){if(__$ctx.elem==="text"){__$ctx.__$a=0;return"span"}if(!__$ctx.elem){__$ctx.__$a=0;return __$ctx.ctx.tag||"button"}}else if(__$t==="ua"){if(!__$ctx.elem){__$ctx.__$a=0;return"script"}}else if(__$t==="someBlock"){if(__$ctx.elem==="title"){__$ctx.__$a=0;return"h1"}}else if(__$t==="input"){var __$t=__$ctx.elem;if(__$t==="control"){__$ctx.__$a=0;return"input"}else if(__$t==="box"){__$ctx.__$a=0;return"span"}if(!__$ctx.elem){__$ctx.__$a=0;return"span"}}else if(__$t==="spin"){if(!__$ctx.elem){__$ctx.__$a=0;return"span"}}__$ctx.__$a=0;return undefined;return __$ref}function __$g1(__$ctx,__$ref){var __$t=__$ctx.block;if(__$t==="button"){var __$t=!__$ctx.elem;if(__$t){if(typeof __$ctx.ctx.content!=="undefined"){__$ctx.__$a=0;return __$ctx.ctx.content}__$ctx.__$a=0;var __$r=__$b17(__$ctx,__$ref);if(__$r!==__$ref)return __$r}}else if(__$t==="ua"){if(!__$ctx.elem){__$ctx.__$a=0;return["(function(e,c){",'e[c]=e[c].replace(/(ua_js_)no/g,"$1yes");','})(document.documentElement,"className");']}}else if(__$t==="someBlock"){var __$t=__$ctx.elem;if(__$t==="actions"){__$ctx.__$a=0;return{block:"button",mods:{theme:"normal",size:"l"},text:"say"}}else if(__$t==="answer"){__$ctx.__$a=0;return{block:"input",label:"Name:"}}}else if(__$t==="input"){var __$t=!__$ctx.elem;if(__$t){if(typeof __$ctx.ctx.content!=="undefined"){__$ctx.__$a=0;return __$ctx.ctx.content}__$ctx.__$a=0;var __$r=__$b22(__$ctx,__$ref);if(__$r!==__$ref)return __$r}}else if(__$t==="loader"){if(!__$ctx.elem){__$ctx.__$a=0;return{block:"spin",mods:{theme:"normal",size:"m",progress:true}}}}__$ctx.__$a=0;return __$ctx.ctx.content;return __$ref};
      return exports;
   })({});
   var defineAsGlobal = true;

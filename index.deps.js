@@ -44,7 +44,16 @@ exports.deps = [
     {
         "block": "spin",
         "mod": "theme",
-        "val": "simple"
+        "val": "normal"
+    },
+    {
+        "block": "spin",
+        "mod": "size"
+    },
+    {
+        "block": "spin",
+        "mod": "size",
+        "val": "m"
     },
     {
         "block": "spin",
@@ -65,13 +74,6 @@ exports.deps = [
     {
         "block": "someBlock",
         "elem": "body"
-    },
-    {
-        "block": "someBlock",
-        "elem": "question"
-    },
-    {
-        "block": "someBlock"
     },
     {
         "block": "input"
@@ -130,6 +132,14 @@ exports.deps = [
     },
     {
         "block": "idle"
+    },
+    {
+        "block": "someBlock",
+        "elem": "answer"
+    },
+    {
+        "block": "someBlock",
+        "elem": "question"
     },
     {
         "block": "button"
@@ -194,7 +204,14 @@ exports.deps = [
     {
         "block": "button",
         "mod": "size",
-        "val": "s"
+        "val": "l"
+    },
+    {
+        "block": "someBlock",
+        "elem": "actions"
+    },
+    {
+        "block": "someBlock"
     },
     {
         "block": "loader",
@@ -253,7 +270,18 @@ exports.depsByTechs = {
                 "tech": "js",
                 "block": "spin",
                 "mod": "theme",
-                "val": "simple"
+                "val": "normal"
+            },
+            {
+                "tech": "js",
+                "block": "spin",
+                "mod": "size"
+            },
+            {
+                "tech": "js",
+                "block": "spin",
+                "mod": "size",
+                "val": "m"
             },
             {
                 "tech": "js",
@@ -279,15 +307,6 @@ exports.depsByTechs = {
                 "tech": "js",
                 "block": "someBlock",
                 "elem": "body"
-            },
-            {
-                "tech": "js",
-                "block": "someBlock",
-                "elem": "question"
-            },
-            {
-                "tech": "js",
-                "block": "someBlock"
             },
             {
                 "tech": "js",
@@ -435,6 +454,16 @@ exports.depsByTechs = {
             },
             {
                 "tech": "js",
+                "block": "someBlock",
+                "elem": "answer"
+            },
+            {
+                "tech": "js",
+                "block": "someBlock",
+                "elem": "question"
+            },
+            {
+                "tech": "js",
                 "block": "button"
             },
             {
@@ -511,11 +540,30 @@ exports.depsByTechs = {
                 "tech": "js",
                 "block": "button",
                 "mod": "size",
-                "val": "s"
+                "val": "l"
+            },
+            {
+                "tech": "js",
+                "block": "someBlock",
+                "elem": "actions"
             },
             {
                 "tech": "js",
                 "block": "someBlock"
+            },
+            {
+                "tech": "js",
+                "block": "someBlock"
+            },
+            {
+                "tech": "js",
+                "block": "someBlock",
+                "elem": "answer"
+            },
+            {
+                "tech": "js",
+                "block": "someBlock",
+                "elem": "actions"
             },
             {
                 "tech": "js",
@@ -634,7 +682,18 @@ exports.depsByTechs = {
                 "tech": "bemhtml",
                 "block": "spin",
                 "mod": "theme",
-                "val": "simple"
+                "val": "normal"
+            },
+            {
+                "tech": "bemhtml",
+                "block": "spin",
+                "mod": "size"
+            },
+            {
+                "tech": "bemhtml",
+                "block": "spin",
+                "mod": "size",
+                "val": "m"
             },
             {
                 "tech": "bemhtml",
@@ -660,15 +719,6 @@ exports.depsByTechs = {
                 "tech": "bemhtml",
                 "block": "someBlock",
                 "elem": "body"
-            },
-            {
-                "tech": "bemhtml",
-                "block": "someBlock",
-                "elem": "question"
-            },
-            {
-                "tech": "bemhtml",
-                "block": "someBlock"
             },
             {
                 "tech": "bemhtml",
@@ -744,6 +794,16 @@ exports.depsByTechs = {
             },
             {
                 "tech": "bemhtml",
+                "block": "someBlock",
+                "elem": "answer"
+            },
+            {
+                "tech": "bemhtml",
+                "block": "someBlock",
+                "elem": "question"
+            },
+            {
+                "tech": "bemhtml",
                 "block": "button",
                 "mod": "theme"
             },
@@ -762,7 +822,16 @@ exports.depsByTechs = {
                 "tech": "bemhtml",
                 "block": "button",
                 "mod": "size",
-                "val": "s"
+                "val": "l"
+            },
+            {
+                "tech": "bemhtml",
+                "block": "someBlock",
+                "elem": "actions"
+            },
+            {
+                "tech": "bemhtml",
+                "block": "someBlock"
             },
             {
                 "tech": "bemhtml",
@@ -907,7 +976,18 @@ exports.depsByTechs = {
                 "tech": "bemhtml",
                 "block": "spin",
                 "mod": "theme",
-                "val": "simple"
+                "val": "normal"
+            },
+            {
+                "tech": "bemhtml",
+                "block": "spin",
+                "mod": "size"
+            },
+            {
+                "tech": "bemhtml",
+                "block": "spin",
+                "mod": "size",
+                "val": "m"
             },
             {
                 "tech": "bemhtml",
@@ -937,11 +1017,12 @@ exports.depsByTechs = {
             {
                 "tech": "bemhtml",
                 "block": "someBlock",
-                "elem": "question"
+                "elem": "answer"
             },
             {
                 "tech": "bemhtml",
-                "block": "someBlock"
+                "block": "someBlock",
+                "elem": "question"
             },
             {
                 "tech": "bemhtml",
@@ -1061,7 +1142,16 @@ exports.depsByTechs = {
                 "tech": "bemhtml",
                 "block": "button",
                 "mod": "size",
-                "val": "s"
+                "val": "l"
+            },
+            {
+                "tech": "bemhtml",
+                "block": "someBlock",
+                "elem": "actions"
+            },
+            {
+                "tech": "bemhtml",
+                "block": "someBlock"
             },
             {
                 "tech": "bemhtml",
@@ -1145,7 +1235,18 @@ exports.depsByTechs = {
                 "tech": "spec.js",
                 "block": "spin",
                 "mod": "theme",
-                "val": "simple"
+                "val": "normal"
+            },
+            {
+                "tech": "spec.js",
+                "block": "spin",
+                "mod": "size"
+            },
+            {
+                "tech": "spec.js",
+                "block": "spin",
+                "mod": "size",
+                "val": "m"
             },
             {
                 "tech": "spec.js",
@@ -1171,15 +1272,6 @@ exports.depsByTechs = {
                 "tech": "spec.js",
                 "block": "someBlock",
                 "elem": "body"
-            },
-            {
-                "tech": "spec.js",
-                "block": "someBlock",
-                "elem": "question"
-            },
-            {
-                "tech": "spec.js",
-                "block": "someBlock"
             },
             {
                 "tech": "spec.js",
@@ -1299,6 +1391,16 @@ exports.depsByTechs = {
             },
             {
                 "tech": "spec.js",
+                "block": "someBlock",
+                "elem": "answer"
+            },
+            {
+                "tech": "spec.js",
+                "block": "someBlock",
+                "elem": "question"
+            },
+            {
+                "tech": "spec.js",
                 "block": "button"
             },
             {
@@ -1375,7 +1477,16 @@ exports.depsByTechs = {
                 "tech": "spec.js",
                 "block": "button",
                 "mod": "size",
-                "val": "s"
+                "val": "l"
+            },
+            {
+                "tech": "spec.js",
+                "block": "someBlock",
+                "elem": "actions"
+            },
+            {
+                "tech": "spec.js",
+                "block": "someBlock"
             },
             {
                 "tech": "spec.js",
@@ -1423,13 +1534,6 @@ exports.depsByTechs = {
             },
             {
                 "tech": "spec.js",
-                "block": "jquery",
-                "elem": "event",
-                "mod": "type",
-                "val": "pointer"
-            },
-            {
-                "tech": "spec.js",
                 "block": "loader"
             },
             {
@@ -1440,6 +1544,17 @@ exports.depsByTechs = {
             {
                 "tech": "spec.js",
                 "block": "events"
+            },
+            {
+                "tech": "spec.js",
+                "block": "jquery",
+                "elem": "event",
+                "mod": "type",
+                "val": "pointer"
+            },
+            {
+                "tech": "spec.js",
+                "block": "someBlock"
             },
             {
                 "tech": "spec.js",
@@ -1458,7 +1573,13 @@ exports.depsByTechs = {
             },
             {
                 "tech": "spec.js",
-                "block": "someBlock"
+                "block": "someBlock",
+                "elem": "answer"
+            },
+            {
+                "tech": "spec.js",
+                "block": "someBlock",
+                "elem": "actions"
             }
         ],
         "js": [
@@ -1483,7 +1604,18 @@ exports.depsByTechs = {
                 "tech": "js",
                 "block": "spin",
                 "mod": "theme",
-                "val": "simple"
+                "val": "normal"
+            },
+            {
+                "tech": "js",
+                "block": "spin",
+                "mod": "size"
+            },
+            {
+                "tech": "js",
+                "block": "spin",
+                "mod": "size",
+                "val": "m"
             },
             {
                 "tech": "js",
@@ -1509,15 +1641,6 @@ exports.depsByTechs = {
                 "tech": "js",
                 "block": "someBlock",
                 "elem": "body"
-            },
-            {
-                "tech": "js",
-                "block": "someBlock",
-                "elem": "question"
-            },
-            {
-                "tech": "js",
-                "block": "someBlock"
             },
             {
                 "tech": "js",
@@ -1633,6 +1756,16 @@ exports.depsByTechs = {
             },
             {
                 "tech": "js",
+                "block": "someBlock",
+                "elem": "answer"
+            },
+            {
+                "tech": "js",
+                "block": "someBlock",
+                "elem": "question"
+            },
+            {
+                "tech": "js",
                 "block": "button"
             },
             {
@@ -1709,7 +1842,16 @@ exports.depsByTechs = {
                 "tech": "js",
                 "block": "button",
                 "mod": "size",
-                "val": "s"
+                "val": "l"
+            },
+            {
+                "tech": "js",
+                "block": "someBlock",
+                "elem": "actions"
+            },
+            {
+                "tech": "js",
+                "block": "someBlock"
             },
             {
                 "tech": "js",
@@ -1778,6 +1920,10 @@ exports.depsByTechs = {
             },
             {
                 "tech": "bemhtml",
+                "block": "events"
+            },
+            {
+                "tech": "bemhtml",
                 "block": "i-bem",
                 "elem": "dom"
             },
@@ -1798,7 +1944,18 @@ exports.depsByTechs = {
                 "tech": "bemhtml",
                 "block": "spin",
                 "mod": "theme",
-                "val": "simple"
+                "val": "normal"
+            },
+            {
+                "tech": "bemhtml",
+                "block": "spin",
+                "mod": "size"
+            },
+            {
+                "tech": "bemhtml",
+                "block": "spin",
+                "mod": "size",
+                "val": "m"
             },
             {
                 "tech": "bemhtml",
@@ -1824,15 +1981,6 @@ exports.depsByTechs = {
                 "tech": "bemhtml",
                 "block": "someBlock",
                 "elem": "body"
-            },
-            {
-                "tech": "bemhtml",
-                "block": "someBlock",
-                "elem": "question"
-            },
-            {
-                "tech": "bemhtml",
-                "block": "someBlock"
             },
             {
                 "tech": "bemhtml",
@@ -1905,6 +2053,16 @@ exports.depsByTechs = {
             {
                 "tech": "bemhtml",
                 "block": "idle"
+            },
+            {
+                "tech": "bemhtml",
+                "block": "someBlock",
+                "elem": "answer"
+            },
+            {
+                "tech": "bemhtml",
+                "block": "someBlock",
+                "elem": "question"
             },
             {
                 "tech": "bemhtml",
@@ -1984,7 +2142,16 @@ exports.depsByTechs = {
                 "tech": "bemhtml",
                 "block": "button",
                 "mod": "size",
-                "val": "s"
+                "val": "l"
+            },
+            {
+                "tech": "bemhtml",
+                "block": "someBlock",
+                "elem": "actions"
+            },
+            {
+                "tech": "bemhtml",
+                "block": "someBlock"
             },
             {
                 "tech": "bemhtml",
@@ -2015,10 +2182,6 @@ exports.depsByTechs = {
             {
                 "tech": "bemhtml",
                 "block": "button"
-            },
-            {
-                "tech": "bemhtml",
-                "block": "events"
             },
             {
                 "tech": "bemhtml",
@@ -2075,6 +2238,16 @@ exports.depsByTechs = {
             {
                 "tech": "bemhtml",
                 "block": "someBlock"
+            },
+            {
+                "tech": "bemhtml",
+                "block": "someBlock",
+                "elem": "answer"
+            },
+            {
+                "tech": "bemhtml",
+                "block": "someBlock",
+                "elem": "actions"
             }
         ]
     }

@@ -4,9 +4,8 @@
     favicon: '/favicon.ico',
     head: [
         { elem: 'meta', attrs: { name: 'description', content: 'Examples BEM blocks' }},
-        { elem: 'css', url: '_index.css' }
-    ],
-    scripts: [
+        { elem: 'css', url: '_index.css' },
+        { elem: 'js', url: '_ie.js', ie: 'lt IE 8' },
         { elem: 'js', url: '_index.js' }
     ],
     content: [
