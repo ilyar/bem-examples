@@ -1,7 +1,14 @@
-# Как начать работать с проектом
+# bem-examples
 
-[Project-stub](https://github.com/bem/project-stub) – это шаблонный репозиторий для создания БЭМ-проектов. Он содержит необходимый минимум конфигурационных файлов и папок, который позволяет быстро развернуть проект с нуля.  
-В project-stub по умолчанию подключены основные БЭМ-библиотеки:   
+Эксперименты по созданию БЭМ-блоков.
+
+    git clone git@github.com:ilyar/bem-examples.git
+    cd bem-examples
+    npm install
+    npm run build
+    open desktop.bundles/index/index.html
+
+В bem-examples по умолчанию подключены основные БЭМ-библиотеки:
 
 * [bem-core](https://github.com/bem/bem-core)  
 * [bem-components](https://github.com/bem/bem-components)  
@@ -18,9 +25,9 @@
 
 Начнем...
 
-    git clone https://github.com/bem/project-stub.git -b bem-core my-bem-project  
-    cd my-bem-project      
-    npm install  
+    git clone git@github.com:ilyar/bem-examples.git
+    cd bem-examples
+    npm install
 
 ## Практическое применение 
 

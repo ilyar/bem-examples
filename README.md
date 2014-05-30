@@ -1,6 +1,12 @@
-# Stub to start a new [BEM](http://bem.info) project
+# bem-examples
 
-Project-stub is a template project repository used for BEM projects creation. It contains the minimal configuration files and folders you will need for quick start from scratch. 
+Experiments to create BEM blocks.
+
+    git clone git@github.com:ilyar/bem-examples.git
+    cd bem-examples
+    npm install
+    npm run build
+    open desktop.bundles/index/index.html
 
 There are two main BEM libraries are linked here by default:
 
@@ -19,8 +25,8 @@ So, how easy is it to get started with BEM?  *Super easy*.
 
 It's as easy as...
 
-    git clone https://github.com/bem/project-stub.git -b bem-core my-bem-project
-    cd my-bem-project
+    git clone git@github.com:ilyar/bem-examples.git
+    cd bem-examples
     npm install
 
 ## Usage
