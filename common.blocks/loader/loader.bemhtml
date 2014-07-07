@@ -1,9 +1,0 @@
-block('loader')(
-    js()(true),
-    content()(
-        {
-            block : 'spin',
-            mods : { theme : 'normal', size : 'm', progress : true }
-        }
-    )
-)
