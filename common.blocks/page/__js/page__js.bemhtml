@@ -24,7 +24,7 @@ block('page').elem('js')(
             match(function() { return this.ctx.ie === true; })(function() {
                 var url = this.ctx.url;
                 applyCtx([6, 7, 8, 9].map(function(v) {
-                    return { elem : 'js', url : url + '.ie' + v + '.css', ie : 'IE ' + v };
+                    return { elem : 'js', url : url + '.ie' + v + '.js', ie : 'IE ' + v };
                 }));
             }))
 );
