@@ -1,27 +1,20 @@
 [
     {
         mustDeps: [
-            {
-                elems: [
-                    'title'
-                    , 'body'
-                    , 'answer'
-                    , 'question'
-                    , 'actions'
-                ]
-            }
+            { block : 'i-bem', elems : ['dom'] },
+            { block : 'vow', mods: { global: true } }
+        ],
+        shouldDeps: [
+            { elems: [ 'title', 'answer' ] }
         ]
-        , shouldDeps: [
-
-        ]
-    }
-    , {
-        tech : 'js'
-        , mustDeps : [
-            {
-                tech : 'bemhtml',
-                block : 'button'
-            }
+    },
+    {
+        tech : 'js',
+        shouldDeps : [
+            { tech : 'bemhtml', block : 'i-bem' },
+            { tech : 'bemhtml', block : 'someBlock' },
+            { tech : 'bemtree', block : 'i-bem' },
+            { tech : 'bemtree', block : 'someBlock' }
         ]
     }
 ]

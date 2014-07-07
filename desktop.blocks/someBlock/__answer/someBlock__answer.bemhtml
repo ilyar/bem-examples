@@ -1,5 +1,0 @@
-block('someBlock').elem('answer')(
-    content()(
-        {  block: 'input', label: 'Name:' }
-    )
-)
