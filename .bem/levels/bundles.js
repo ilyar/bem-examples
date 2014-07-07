@@ -8,6 +8,9 @@ exports.baseLevelPath = require.resolve('./blocks');
 exports.getTechs = function() {
     var techs = this.__base();
 
+    // use techs from project (.bem/techs)
+    ['browser.js+bemhtml+bemtree'].forEach(getTechResolver(techs, '.bem/techs'));
+
     // Use techs from lib bem-core
     ['browser.js+bemhtml', 'html'].forEach(getTechResolver(techs, BEMCORE_TECHS));
 

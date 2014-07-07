@@ -23,7 +23,8 @@ MAKE.decl('BundleNode', {
             'bemdecl.js',
             'deps.js',
             'bemhtml',
-            'browser.js+bemhtml',
+            'bemtree',
+            'browser.js+bemhtml+bemtree',
             'stylus',
             'css',
             'html'
@@ -32,7 +33,7 @@ MAKE.decl('BundleNode', {
     },
 
     getForkedTechs : function() {
-        return this.__base().concat(['browser.js+bemhtml', 'stylus']);
+        return this.__base().concat(['browser.js+bemhtml+bemtree', 'stylus']);
     },
 
     getLevelsMap : function() {
@@ -58,6 +59,10 @@ MAKE.decl('BundleNode', {
         return levels
             .map(function(path) { return resolve(path); })
             .concat(resolve(PATH.dirname(this.getNodePrefix()), 'blocks'));
+    },
+
+    'create-browser.js+bemhtml+bemtree-optimizer-node': function(tech, sourceNode, bundleNode) {
+        return this['create-js-optimizer-node'].apply(this, arguments);
     },
 
     'create-css-node' : function(tech, bundleNode, magicNode) {
