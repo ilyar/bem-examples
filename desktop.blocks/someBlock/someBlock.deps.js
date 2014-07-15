@@ -2,7 +2,7 @@
     {
         mustDeps: [
             { block : 'i-bem', elems : ['dom'] },
-            { block : 'vow', mods: { global: true } }
+            { block : 'vow' }
         ],
         shouldDeps: [
             { elems: [ 'title', 'answer' ] }

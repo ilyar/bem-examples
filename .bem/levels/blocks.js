@@ -18,10 +18,10 @@ exports.getTechs = function() {
     };
 
     // use techs from project (.bem/techs)
-    ['bemjson.js'].forEach(getTechResolver(techs, '.bem/techs'));
+    ['bemjson.js', 'bemhtml', 'bemtree'].forEach(getTechResolver(techs, '.bem/techs'));
 
     // use techs from bem-core library
-    ['bemhtml', 'bemtree', 'vanilla.js', 'browser.js', 'node.js'].forEach(getTechResolver(techs, BEMCORE_TECHS));
+    ['vanilla.js', 'browser.js', 'node.js'].forEach(getTechResolver(techs, BEMCORE_TECHS));
 
     return techs;
 };
