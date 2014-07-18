@@ -13,7 +13,15 @@
 * [bem-core](https://github.com/bem/bem-core)  
 * [bem-components](https://github.com/bem/bem-components)  
 
-Попробуй БЭМ на вкус!
+## Переменные окружения
+
+```bash
+YENV=development|production
+BEMTREE_ENV=production|development
+BEMTREE_CACHE=off|on
+BEMHTML_ENV=production|development
+BEMHTML_CACHE=off|on
+```
 
 ## Требования к установке
 

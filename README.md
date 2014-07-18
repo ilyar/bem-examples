@@ -13,7 +13,15 @@ There are two main BEM libraries are linked here by default:
 * [bem-core](https://github.com/bem/bem-core)  
 * [bem-components](https://github.com/bem/bem-components)
 
-Just try and taste BEM!
+## The environment variables
+
+```bash
+YENV=development|production
+BEMTREE_ENV=production|development
+BEMTREE_CACHE=off|on
+BEMHTML_ENV=production|development
+BEMHTML_CACHE=off|on
+```
 
 ## Installation requirements
 
