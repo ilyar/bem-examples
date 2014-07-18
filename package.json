@@ -26,7 +26,11 @@
   "scripts": {
     "postinstall": "bower-npm-install --non-interactive",
     "deps": "bower-npm-install --non-interactive",
-    "watch": "bem make -m clean -v error && bem server -p 8080 -v error",
-    "build": "bem make -m clean -v error && bem make -v error && autopolyfiller -o desktop.bundles/index/_ie.js desktop.bundles/index/_index.js -b \"Explorer >= 8\""
+    "clean": "bem make -m clean -v error",
+    "watch": "npm run clean && bem server -p 8080 -v error",
+    "build": "npm run clean && bem make -v error && autopolyfiller -o desktop.bundles/index/_ie.js desktop.bundles/index/_index.js -b \"Explorer >= 8\"",
+    "watch": "npm run clean && bem server -p 8080 -v error",
+    "build": "npm run clean && bem make -v error",
+    "release": "YENV=production npm run build"
   }
 }
