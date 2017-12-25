@@ -1,4 +1,4 @@
-.someBlock {
+:block(someBlock) {
     font-family: Tahoma, Arial, Helvetica, sans-serif;
     font-size: 14px;
     color: #404040;
@@ -9,11 +9,11 @@
     padding: 30px;
     width: 300px;
 
-    &__question, &__content {
+    &:elem(question),
+    &:elem(content) {
         font-style: italic;
         margin-top: 20px;
         font-size: 16px;
         text-align: center;
     }
-
 }

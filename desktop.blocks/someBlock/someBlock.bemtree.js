@@ -23,4 +23,4 @@ block('someBlock')(
             }];
         return applyNext();
     })
-)
+);
