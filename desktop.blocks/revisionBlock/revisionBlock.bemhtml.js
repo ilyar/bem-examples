@@ -1,3 +1,3 @@
 block('revisionBlock')(
     js()(true)
-)
+);

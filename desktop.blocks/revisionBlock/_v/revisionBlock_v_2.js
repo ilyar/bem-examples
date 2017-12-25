@@ -6,7 +6,7 @@
  */
 modules.define('revisionBlock', function(provide, RevisionBlock) {
 
-    provide(RevisionBlock.decl({ modName : 'v', modVal : '2' }, {
+    provide(RevisionBlock.declMod({ modName : 'v', modVal : '2' }, {
 
         onSetMod : {
             'js' : {
