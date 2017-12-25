@@ -2,9 +2,9 @@
     block: 'page',
     title: 'revisionBlock',
     head: [
-        { elem: 'css', url: '_revisionBlock.css' }
+        { elem: 'css', url: 'revisionBlock.css' }
     ],
-    scripts: [{ elem: 'js', url: '_revisionBlock.js' }],
+    scripts: [{ elem: 'js', url: 'revisionBlock.js' }],
     content: [
         {
             block: 'revisionBlock',

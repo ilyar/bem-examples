@@ -1,20 +1,20 @@
 [
     {
-        mustDeps: [
-            { block : 'i-bem', elems : ['dom'] },
-            { block : 'vow' }
-        ],
+        mustDeps: 'i-bem-dom',
         shouldDeps: [
-            { elems: [ 'title', 'answer' ] }
+            {
+                elems: [
+                    //'answer',
+                    'title'
+                ]
+            }
         ]
     },
     {
-        tech : 'js',
-        shouldDeps : [
-            { tech : 'bemhtml', block : 'i-bem' },
-            { tech : 'bemhtml', block : 'someBlock' },
-            { tech : 'bemtree', block : 'i-bem' },
-            { tech : 'bemtree', block : 'someBlock' }
+        tech: 'js',
+        shouldDeps: [
+            {tech: 'bemhtml', block: 'someBlock'},
+            {tech: 'bemtree', block: 'someBlock'}
         ]
     }
 ]
