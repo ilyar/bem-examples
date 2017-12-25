@@ -29,6 +29,7 @@ const techs = {
 
         // bemhtml
         bemhtml: require('enb-bemxjst/techs/bemhtml'),
+        bemtreeToHtml: require('./techs/bemtree-to-html'),
         bemjsonToHtml: require('enb-bemxjst/techs/bemjson-to-html')
     },
     enbBemTechs = require('enb-bem-techs'),
@@ -51,6 +52,7 @@ module.exports = function(config) {
             // essential
             [enbBemTechs.levels, { levels: levels }],
             [techs.fileProvider, { target: '?.bemjson.js' }],
+            //[techs.fileProvider, { target: '?.bemdecl.js' }],
             [enbBemTechs.bemjsonToBemdecl],
             [enbBemTechs.deps],
             [enbBemTechs.files],
@@ -74,6 +76,28 @@ module.exports = function(config) {
 
             // html
             [techs.bemjsonToHtml],
+            //[techs.bemtreeToHtml],
+
+            // client bemtree
+            [enbBemTechs.depsByTechToBemdecl, {
+                target: '?.bemtree.bemdecl.js',
+                sourceTech: 'js',
+                destTech: 'bemtree'
+            }],
+            [enbBemTechs.deps, {
+                target: '?.bemtree.deps.js',
+                bemdeclFile: '?.bemtree.bemdecl.js'
+            }],
+            [enbBemTechs.files, {
+                depsFile: '?.bemtree.deps.js',
+                filesTarget: '?.bemtree.files',
+                dirsTarget: '?.bemtree.dirs'
+            }],
+            [techs.bemtree, {
+                target: '?.browser.bemtree.js',
+                filesTarget: '?.bemtree.files',
+                sourceSuffixes: ['bemtree', 'bemtree.js']
+            }],
 
             // client bemhtml
             [enbBemTechs.depsByTechToBemdecl, {
@@ -101,7 +125,7 @@ module.exports = function(config) {
             [techs.browserJs, { includeYM: true }],
             [techs.fileMerge, {
                 target: '?.js',
-                sources: ['?.browser.js', '?.browser.bemhtml.js']
+                sources: ['?.browser.js', '?.browser.bemhtml.js', '?.browser.bemtree.js']
             }],
 
             // borschik
